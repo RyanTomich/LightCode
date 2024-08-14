@@ -6,6 +6,8 @@ import tvm
 from tvm import relay
 from tvm.relay import op
 from tvm.contrib import graph_runtime
+from tvm.contrib import graph_executor
+
 import onnx
 import numpy as np
 import os
@@ -59,41 +61,48 @@ def transformer_torch_to_onnx(model_name, prompt):
     model_name_save = model_name.split('/', 1)[-1]
 
     # get model from transformer library
-    model = AutoModelForCausalLM.from_pretrained(model_name, torchscript=True)
     tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name, torchscript=True)
 
-    input_ids = tokenizer(prompt, return_tensors="pt").input_ids
+    inputs = tokenizer(prompt, return_tensors="pt")
+    input_ids = inputs.input_ids
     model_onnx = model.eval()  # Change to eval mode
 
-    onnx_model_io = io.BytesIO()
-
-    # Check if the ONNX file already exists
     onnx_file_path = f"models/{model_name_save}.onnx"
     print(onnx_file_path)
 
     if os.path.exists(onnx_file_path):
         print("already a model")
-        # model_onnx = onnx.load(onnx_file_path)
-        # onnx.save(model_onnx, onnx_model_io)
     else:
         print("making new model")
         input_names = ["input_ids"]
         output_names = ["output"]
 
+        # torch.onnx.export(
+        #     model_onnx,
+        #     (input_ids,),
+        #     onnx_file_path,
+        #     input_names=input_names,
+        #     output_names=output_names,
+        #     dynamic_axes={"input_ids": {0: "batch"}},
+        #     opset_version=16,
+        # )
+
         torch.onnx.export(
-            model_onnx,
-            (input_ids,),
+            model,
+            (inputs['input_ids'], inputs['attention_mask']),
             onnx_file_path,
-            input_names=input_names,
-            output_names=output_names,
-            dynamic_axes={"input_ids": {0: "batch"}},
-            opset_version=16,
+            input_names=['input_ids', 'attention_mask'],
+            output_names=['logits'],
+            dynamic_axes={'input_ids': {0: 'batch_size', 1: 'sequence'},
+                        'attention_mask': {0: 'batch_size', 1: 'sequence'},
+                        'logits': {0: 'batch_size', 1: 'sequence'}}
         )
-    return input_ids
+    return inputs
 
 
 def onnx_to_relay(
-    input_ids, write=True, model_name="model", opt_level=0, config={}
+    inputs, run=True, write=False, model_name="model", opt_level=0, config={}
 ):
     """Converts the onnx format to relay IR with json, .so, and params
     model_onnx - model in onnx format
@@ -102,13 +111,18 @@ def onnx_to_relay(
     opt_level(int 0-3)- how much to optimize
     config(dict) - config files
     """
+    input_ids = inputs.input_ids
+
     model_name_save = model_name.split('/', 1)[-1]
     model_onnx_path = f"models/{model_name_save}.onnx"
     model_onnx = onnx.load(model_onnx_path)
 
+
     shape_dict = {
-        "input_ids": input_ids.shape
+        "input_ids": input_ids.shape,
+        "attention_mask": input_ids.shape
     }
+
     onnx.checker.check_model(model_onnx_path)
     mod, params = relay.frontend.from_onnx(
         model_onnx, shape_dict
@@ -132,26 +146,44 @@ def onnx_to_relay(
     with tvm.transform.PassContext(opt_level=opt_level, config=config):
         lib = relay.build(mod, target=target, params=params)
 
+    if run:
+        target = tvm.cpu()
+        module = graph_executor.GraphModule(lib["default"](target))
+
+        # Set inputs
+        input_ids = tvm.nd.array(inputs['input_ids'].numpy())
+        attention_mask = tvm.nd.array(inputs['attention_mask'].numpy())
+        module.set_input('input_ids', input_ids)
+        module.set_input('attention_mask', attention_mask)
+
+        # Run inference
+        module.run()
+
+        # Get outputs
+        logits = module.get_output(0).asnumpy()
+        print(logits.shape) # (1, 6, 32000)
+
+        last_token_logits = logits[0, -1, :]
+        next_token_id = np.argmax(last_token_logits)
+
+        print(f'{input_ids} + {next_token_id}')
+
     if write:
-        # # Save the graph JSON to a file
-        # graph_json_path = f"models/{model_name_save}_graph.json"
-        # with open(graph_json_path, "w") as f:
-        #     f.write(lib.get_graph_json())
+        # Save the graph JSON to a file
+        graph_json_path = f"models/{model_name_save}_graph.json"
+        with open(graph_json_path, "w") as f:
+            f.write(lib.get_graph_json())
 
         # Create the function library
-        print('writing lib')
         lib.export_library(f"{model_name_save}_lib.so")
-        print('DONE!')
+        lib.export_library(f"models/{model_name_save}_lib.tar")
 
-        # lib.export_library(f"models/{model_name_save}_lib.tar")
-
-
-        # # Creat paramater library
-        # param_dict = lib.get_params()
-        # param_bytes_path = f"models/{model_name_save}_params.params"
-        # with open(param_bytes_path, "wb") as f:
-        #     # f.write(relay.save_param_dict(param_dict).get_bytearray())
-        #     f.write(relay.save_param_dict(param_dict))
+        # Creat paramater library
+        param_dict = lib.get_params()
+        param_bytes_path = f"models/{model_name_save}_params.params"
+        with open(param_bytes_path, "wb") as f:
+            # f.write(relay.save_param_dict(param_dict).get_bytearray())
+            f.write(relay.save_param_dict(param_dict))
 
     return lib
 
@@ -223,10 +255,10 @@ def tvm_validation(model_name, prompt):
 
 # model_name = 'gpt2'
 model_name = "meta-llama/Llama-2-7b-hf"
-prompt = 'my favorite music is '
+prompt = "My favorite music is "
 
-input_ids = transformer_torch_to_onnx(model_name, prompt)
-lib = onnx_to_relay(input_ids, write=True, model_name=model_name, opt_level=3)
+inputs = transformer_torch_to_onnx(model_name, prompt)
+lib = onnx_to_relay(inputs, run=True, write=False, model_name=model_name, opt_level=3)
 
 """
 model_name = "gpt2"
