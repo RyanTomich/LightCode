@@ -4,6 +4,7 @@ compile a generic model in any format to relay IR
 
 import tvm
 from tvm import relay
+from tvm.relay import op
 from tvm.contrib import graph_runtime
 import onnx
 import numpy as np
@@ -117,45 +118,43 @@ def onnx_to_relay(
     """
     shape_dict = {
         "input_ids": input_ids.shape
-    }  # Adjust based on your model's input shape
+    }
     onnx.checker.check_model(model_onnx)
     mod, params = relay.frontend.from_onnx(
         model_onnx, shape_dict
     )  # <class 'tvm.ir.module.IRModule'>
 
-    # apply optimixations
-    sep_mod = relay.transform.FuseOps(0)(mod)
-    # tvm.relay.transform.DefuseOps
-    # tvm.relay.transform.ToGraphNormalForm()
-
-    config = {"relay.FuseOps.max_depth": 0}
-    # config = {"relay.backend.use_auto_scheduler": True,
-    #       "relay.FuseOps.max_depth": -1,
-    #       "tir.disable_vectorize": False}
-
-    # Extract and save Relay function source code
-    relay_source_path = f"model/{model_name}_relay_source.txt"
-    with open(relay_source_path, "w") as f:
-        f.write(sep_mod.astext(show_meta_data=False))  # annotate = func
-
     # Export model graph parts
+    config = {
+            "relay.FuseOps.max_depth": 0, # -1 0 1 2 3
+            # "tir.disable_vectorize": True,
+            # "relay.transform.FoldScaleAxis": True,
+            # "relay.transform.MergeComposite": True,
+            # "tir.transform.Simplify": True,
+            # "tir.transform.RenameBuffer": True,
+            # "tir.transform.Vectorize": True,
+            # "relay.transform.SimplifyInference": True,
+            # "relay.transform.AnnotateSpans": True,
+            # "relay.transform.PostFuse": True,
+            # "relay.transform.Quantize": True,
+        }
     target = tvm.target.Target("llvm", host="llvm")
     with tvm.transform.PassContext(opt_level=opt_level, config=config):
         lib = relay.build(mod, target=target, params=params)
 
     if write:
         # Save the graph JSON to a file
-        graph_json_path = f"modles/{model_name}_graph.json"
+        graph_json_path = f"models/{model_name}_graph.json"
         with open(graph_json_path, "w") as f:
             f.write(lib.get_graph_json())
 
         # Create the function library
-        lib.export_library(f"modles/{model_name}_lib.so")
-        lib.export_library(f"modles/{model_name}_lib.tar")
+        lib.export_library(f"models/{model_name}_lib.so")
+        lib.export_library(f"models/{model_name}_lib.tar")
 
         # Creat paramater library
         param_dict = lib.get_params()
-        param_bytes_path = f"modles/{model_name}_params.params"
+        param_bytes_path = f"models/{model_name}_params.params"
         with open(param_bytes_path, "wb") as f:
             # f.write(relay.save_param_dict(param_dict).get_bytearray())
             f.write(relay.save_param_dict(param_dict))
@@ -232,7 +231,7 @@ model_name = 'gpt2'
 prompt = 'my favorite music is '
 
 model_onnx, input_ids = transformer_torch_to_onnx(model_name, prompt, save=False)
-lib = onnx_to_relay(model_onnx, input_ids, write=True, model_name=model_name, opt_level=0)
+lib = onnx_to_relay(model_onnx, input_ids, write=True, model_name=model_name, opt_level=3)
 
 """
 model_name = "gpt2"
@@ -248,7 +247,7 @@ torch.set_num_threads(1)
 # tvm_validation(model_name, prompt)
 """
 
-"""modles
+"""models
 
 
 'gpt2' : GPT2 - 12 blocks, 12 heads, emb_size 768
