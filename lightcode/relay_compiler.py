@@ -49,13 +49,14 @@ def extract_nested_functions(mod):
     # print(sub_mod)
 
 
-def transformer_torch_to_onnx(model_name, prompt, save=False):
+def transformer_torch_to_onnx(model_name, prompt):
     """Takes transformer models to ONNX
     model_name (srt)
     prompt(str)
     save(bool) samve model to files
     """
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
+    model_name_save = model_name.split('/', 1)[-1]
 
     # get model from transformer library
     model = AutoModelForCausalLM.from_pretrained(model_name, torchscript=True)
@@ -67,47 +68,32 @@ def transformer_torch_to_onnx(model_name, prompt, save=False):
     onnx_model_io = io.BytesIO()
 
     # Check if the ONNX file already exists
-    onnx_file_path = f"{model_name}.onnx"
+    onnx_file_path = f"models/{model_name_save}.onnx"
     print(onnx_file_path)
+
     if os.path.exists(onnx_file_path):
         print("already a model")
-        model_onnx = onnx.load(onnx_file_path)
-        onnx.save(model_onnx, onnx_model_io)
+        # model_onnx = onnx.load(onnx_file_path)
+        # onnx.save(model_onnx, onnx_model_io)
     else:
         print("making new model")
-        # Convert to ONNX
         input_names = ["input_ids"]
         output_names = ["output"]
 
         torch.onnx.export(
             model_onnx,
             (input_ids,),
-            onnx_model_io,
+            onnx_file_path,
             input_names=input_names,
             output_names=output_names,
             dynamic_axes={"input_ids": {0: "batch"}},
             opset_version=16,
         )
-        if save:
-            torch.onnx.export(
-                model_onnx,
-                (input_ids,),
-                onnx_file_path,
-                input_names=input_names,
-                output_names=output_names,
-                dynamic_axes={"input_ids": {0: "batch"}},
-                opset_version=16,
-            )
-
-    onnx_model_io.seek(0)
-    model_onnx_bytes = onnx_model_io.getvalue()
-
-    model_onnx = onnx.load_model_from_string(model_onnx_bytes)
-    return model_onnx, input_ids
+    return input_ids
 
 
 def onnx_to_relay(
-    model_onnx, input_ids, write=True, model_name="model", opt_level=0, config={}
+    input_ids, write=True, model_name="model", opt_level=0, config={}
 ):
     """Converts the onnx format to relay IR with json, .so, and params
     model_onnx - model in onnx format
@@ -116,10 +102,14 @@ def onnx_to_relay(
     opt_level(int 0-3)- how much to optimize
     config(dict) - config files
     """
+    model_name_save = model_name.split('/', 1)[-1]
+    model_onnx_path = f"models/{model_name_save}.onnx"
+    model_onnx = onnx.load(model_onnx_path)
+
     shape_dict = {
         "input_ids": input_ids.shape
     }
-    onnx.checker.check_model(model_onnx)
+    onnx.checker.check_model(model_onnx_path)
     mod, params = relay.frontend.from_onnx(
         model_onnx, shape_dict
     )  # <class 'tvm.ir.module.IRModule'>
@@ -143,21 +133,25 @@ def onnx_to_relay(
         lib = relay.build(mod, target=target, params=params)
 
     if write:
-        # Save the graph JSON to a file
-        graph_json_path = f"models/{model_name}_graph.json"
-        with open(graph_json_path, "w") as f:
-            f.write(lib.get_graph_json())
+        # # Save the graph JSON to a file
+        # graph_json_path = f"models/{model_name_save}_graph.json"
+        # with open(graph_json_path, "w") as f:
+        #     f.write(lib.get_graph_json())
 
         # Create the function library
-        lib.export_library(f"models/{model_name}_lib.so")
-        lib.export_library(f"models/{model_name}_lib.tar")
+        print('writing lib')
+        lib.export_library(f"{model_name_save}_lib.so")
+        print('DONE!')
 
-        # Creat paramater library
-        param_dict = lib.get_params()
-        param_bytes_path = f"models/{model_name}_params.params"
-        with open(param_bytes_path, "wb") as f:
-            # f.write(relay.save_param_dict(param_dict).get_bytearray())
-            f.write(relay.save_param_dict(param_dict))
+        # lib.export_library(f"models/{model_name_save}_lib.tar")
+
+
+        # # Creat paramater library
+        # param_dict = lib.get_params()
+        # param_bytes_path = f"models/{model_name_save}_params.params"
+        # with open(param_bytes_path, "wb") as f:
+        #     # f.write(relay.save_param_dict(param_dict).get_bytearray())
+        #     f.write(relay.save_param_dict(param_dict))
 
     return lib
 
@@ -227,11 +221,12 @@ def tvm_validation(model_name, prompt):
     # print(gen_text)
 
 
-model_name = 'gpt2'
+# model_name = 'gpt2'
+model_name = "meta-llama/Llama-2-7b-hf"
 prompt = 'my favorite music is '
 
-model_onnx, input_ids = transformer_torch_to_onnx(model_name, prompt, save=False)
-lib = onnx_to_relay(model_onnx, input_ids, write=True, model_name=model_name, opt_level=3)
+input_ids = transformer_torch_to_onnx(model_name, prompt)
+lib = onnx_to_relay(input_ids, write=True, model_name=model_name, opt_level=3)
 
 """
 model_name = "gpt2"
