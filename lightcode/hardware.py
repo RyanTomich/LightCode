@@ -52,6 +52,8 @@ def ten_elm(tensor_shape):
 def all_elm(i, o):
     return ten_elm(o[0])
 
+def all_elm_const(c):
+    return lambda i,o: ten_elm(o[0]) * c
 
 def standard_energy(i, o):
     return JOULE_PER_CYCLE
@@ -288,9 +290,9 @@ class CPU(Hardware):
             "divide": HardwareAlgorithm("divide", {self: (all_elm, standard_energy)}),
             "sqrt": HardwareAlgorithm("sqrt", {self: (all_elm, standard_energy)}),
             "rsqrt": HardwareAlgorithm("rsqrt", {self: (all_elm, standard_energy)}),
-            "relu": HardwareAlgorithm("relu", {self: (all_elm, standard_energy)}),
+            "relu": HardwareAlgorithm("relu", {self: (all_elm_const(2), standard_energy)}),
             "tanh": HardwareAlgorithm(
-                "tanh", {self: (lambda i, o: ten_elm(o[0]) * 4, standard_energy)}
+                "tanh", {self: (all_elm_const(4), standard_energy)}
             ),
             "power": HardwareAlgorithm("power", {self: (all_elm, standard_energy)}),
             "transpose": HardwareAlgorithm(
@@ -304,7 +306,7 @@ class CPU(Hardware):
                 {self: (lambda i, o: (i[0][-1] + 1) * i[0][-2], standard_energy)},
             ),
             "softmax": HardwareAlgorithm(
-                "softmax", {self: (lambda i, o: ten_elm(o[0]) * 6, standard_energy)}
+                "softmax", {self: (all_elm_const(6), standard_energy)}
             ),
             "matmul": HardwareAlgorithm(
                 "matmul", {self: (self._cpu_matmul_cycles, self._cpu_matmul_energy)}
@@ -317,6 +319,14 @@ class CPU(Hardware):
             ),
             "where": HardwareAlgorithm("where", {self: (constnat(1), standard_energy)}),
             "erf": HardwareAlgorithm("erf", {self: (constnat(1), standard_energy)}),
+            "slice": HardwareAlgorithm("slice", {self: (constnat(1), standard_energy)}),
+            "negative": HardwareAlgorithm("negative", {self: (all_elm, standard_energy)}),
+            "concatenate": HardwareAlgorithm("concatenate", {self: (constnat(1), standard_energy)}),
+            "sigmoid": HardwareAlgorithm("sigmoid", {self: (all_elm_const(4), standard_energy)}),
+            "cast": HardwareAlgorithm("cast", {self: (all_elm, standard_energy)}),
+            "equal": HardwareAlgorithm("equal", {self: (all_elm, standard_energy)}),
+            "to": HardwareAlgorithm("to", {self: (all_elm, standard_energy)}),
+            "nd": HardwareAlgorithm("nd", {self: (all_elm, standard_energy)}),
         }
         super().__init__(clock_speed)
 
