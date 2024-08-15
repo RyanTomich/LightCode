@@ -409,10 +409,11 @@ class StackGraph(Graph):
         """
         cuts = []
         for layer in layers_list:
-            if 0 < len(layer - self.in_nodes) <= 2:
-                cut = (layer - self.in_nodes).pop()
+            if 0 < len(layer - self.in_nodes - self.residual) <= 1:
+                cut = (layer - self.in_nodes - self.residual).pop()
                 if len(set(self.get_node_obj(cut).parents) - self.in_nodes) > 1:
                     cuts.append(cut)
+
         return cuts
 
     def get_node_groups(self, asap=True):

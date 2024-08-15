@@ -24,6 +24,15 @@ def graph_partition(graph, weight_variable="time"):
     StackedGraph objects. Inclusive on both ends of range.
     graph: StackedGraph
     """
+    for stack in graph.stack_list:
+        if stack.opp == 'nd':
+            scatter_stack = stack
+            continue
+
+    for stack in graph.stack_list:
+        if scatter_stack.stack_id in stack.parents:
+            graph.residual.add(stack.stack_id)
+
     groups = list(graph.get_node_groups(asap=False))
     assert test.group_validate(graph, groups)
     subgraphs = []
@@ -33,7 +42,7 @@ def graph_partition(graph, weight_variable="time"):
         start_stack = sg.Stack(0, set(), [[]], [[]], None, opp="start", node_stack=[])
         start_stack.node_stack.append(sg.Node("start", start_stack))
 
-        # replace parents if not satisfied in group
+        # replace parents if not satisfied in group. handles loads and residuals
         first_stacks = []
         stacks_hit = set()
         for stack in group:
@@ -51,8 +60,6 @@ def graph_partition(graph, weight_variable="time"):
                 stack_obj = graph.get_node_obj(stack_id)
                 new_node = copy.deepcopy(stack_obj)
                 new_node.parents = set(new_node.parents) - graph.in_nodes
-                if hasattr(new_node, 'residual'):
-                    new_node.parents = new_node.parents & set(group) # removal the residual
 
                 # add energy weight from in_node to nodes in stack
                 memory_parent = set(stack_obj.parents) & graph.in_nodes
@@ -435,10 +442,9 @@ def _time_shift(available_hardware, graph, time):
 
 def _add_residual(original_graph, node_list):
     for node in node_list:
-        if hasattr(node.stack, 'residual'):
+        if node.stack_id in original_graph.residual: # is ending node to residual connection
             original_stack = original_graph.get_node_obj(node.stack_id)
-            residual_parrents = {parent for parent in original_stack.parents if parent in original_graph.residual}
-            node.parents.update(residual_parrents)
+            node.parents.update(original_stack.parents)
 
 def _add_in_out(original_graph, node_list):
     """add i/o nodes to graph

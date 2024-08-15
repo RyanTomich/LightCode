@@ -41,5 +41,5 @@ model_name = "meta-llama/Llama-2-7b-hf"
 prompt = "My favorite music is "
 
 
-transformer_generate(model_name, prompt)
+# transformer_generate(model_name, prompt)
 print_cProfile(model_name, prompt)

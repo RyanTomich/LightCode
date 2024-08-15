@@ -32,6 +32,16 @@ def forward(
     WEIGHT_VARIABLE = optimization
 
     graph = sg.StackGraph(raw_json=raw_json, weight_variable=WEIGHT_VARIABLE)
+
+    # print(graph.stack_list[69])
+    # slice_2 = {1027, 1288, 1549, 1810, 2071, 2332, 157, 2593, 418, 679, 940, 1201, 1462, 1723, 1984, 2245, 70, 2506, 331, 2767, 592, 853, 1114, 1375, 1636, 1897, 2158, 2419, 244, 2680, 505, 766}
+    # for stack in graph.stack_list:
+    #     if any(a in slice_2 for a in stack.parents):
+    #         pass
+    #         # print(stack.tvm_func)
+    #         # print(stack.stack_id)
+    # print(f'{slice_2=}')
+
     stacked_subgraphs = list(
         gt.graph_partition(graph, weight_variable=WEIGHT_VARIABLE)
     )
@@ -194,7 +204,8 @@ def debug_forward(
 if __name__ == "__main__":  # import guard
 
     # relay_path = "models/gpt2_graph.json"
-    relay_path = "models/Llama-2-7b-hf_graph.json"
+    # relay_path = "models/Llama-2-7b-hf_graph.json"
+    relay_path = "models/opt0_Llama-2-7b-hf_graph.json"
 
     optimization = "time"
     # optimization = "energy"
