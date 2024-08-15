@@ -50,7 +50,7 @@ class GraphVisualization:
                 "Unknown layout type. Choose from 'spring', 'shell', or 'spectral'."
             )
 
-        plt.figure(figsize=(15, 15))
+        plt.figure(figsize=(20, 20))
 
         edges = G.edges(data=True)
         weights = [self.normalize(edge[2]["weight"], 0, weight_range) for edge in edges]
@@ -58,8 +58,8 @@ class GraphVisualization:
         nx.draw(
             G,
             pos,
-            node_size=100,
-            width=weights,
+            node_size=50,
+            # width=weights,
             with_labels=False,
             node_color="lightblue",
             edge_color="black",
@@ -85,7 +85,9 @@ def adj_to_graph(
     vectorized_function = np.vectorize(lambda x: 1 if x is not None else 0)
 
     adj_matrix = vectorized_function(graph.adj_matrix)
-
+    # sub_matrix = adj_matrix[73:155, 73:155]
+    # sub_matrix = adj_matrix[155:237, 155:237]
+    # sub_matrix = adj_matrix[155:241, 155:241]
     G = nx.from_numpy_array(adj_matrix, create_using=nx.DiGraph)
 
     labels = {}
@@ -126,6 +128,7 @@ def adj_to_graph(
             node_size=10,
             width=0.4,
             arrowsize=4,
+            font_size=10,
         )
     else:
         nx.draw(
