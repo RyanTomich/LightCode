@@ -408,7 +408,7 @@ class StackGraph(Graph):
         """
         cuts = []
         for layer in layers_list:
-            if len(layer - self.in_nodes) == 1:
+            if 0 < len(layer - self.in_nodes) <= 2:
                 cut = (layer - self.in_nodes).pop()
                 if len(set(self.get_node_obj(cut).parents) - self.in_nodes) > 1:
                     cuts.append(cut)

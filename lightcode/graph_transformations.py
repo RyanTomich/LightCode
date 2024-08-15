@@ -51,6 +51,9 @@ def graph_partition(graph, weight_variable="time"):
                 stack_obj = graph.get_node_obj(stack_id)
                 new_node = copy.deepcopy(stack_obj)
                 new_node.parents = set(new_node.parents) - graph.in_nodes
+                if hasattr(new_node, 'residual'):
+                    new_node.parents = new_node.parents & set(group) # removal the residual
+
                 # add energy weight from in_node to nodes in stack
                 memory_parent = set(stack_obj.parents) & graph.in_nodes
                 if weight_variable == "energy" and len(memory_parent) > 0:
@@ -272,8 +275,9 @@ def select_nodes(subgraphs, weight_variable):
         Graph
     """
     flat_subgraphs = []
-    for subgraph in subgraphs:
+    for i, subgraph in enumerate(subgraphs):
         nodes = _rolling_dijkstra(subgraph, weight_variable=weight_variable)
+        print(f'subgraph: {i}')
 
         subgraph_nodes_list = []
         for node in nodes:

@@ -15,7 +15,12 @@ def group_validate(graph, groups):
             for parent in graph.stack_list[stack].parents:
                 if parent in load_instructions:
                     continue
-                assert parent in included
+                # assert parent in included
+                if parent not in included:
+                    if graph.stack_list[parent].opp and graph.stack_list[stack].opp in ['slice', 'add']:
+                        graph.stack_list[stack].residual=True
+                    else:
+                        assert False
     return True
 
 
