@@ -99,16 +99,23 @@ def _make_aggreement_list(graph):
     returns all stack indicies with branches or merges
     """
     branches = []
-    for idx, row in enumerate(graph.adj_matrix):
-        row_counts = 0
-        for stack_idx, element in enumerate(row):
-            if element is not None and graph.stack_list[stack_idx].opp != "memory":
-                row_counts += 1
-        col_count = 0
-        for stack_idx, element in enumerate(graph.adj_matrix[:, idx]):
-            if element is not None and graph.stack_list[stack_idx].opp != "memory":
-                col_count += 1
+    stack_list = graph.stack_list
+    adj_matrix = graph.adj_matrix
+    stack_opps = [stack.opp for stack in stack_list]
 
+    for idx in range(adj_matrix.shape[1]):
+        row_counts = sum(
+            1 for stack_idx in range(adj_matrix.shape[1])
+            if adj_matrix[idx, stack_idx] is not None and stack_opps[stack_idx] != "memory"
+        )
+
+        # Count non-memory elements in the column
+        col_count = sum(
+            1 for stack_idx in range(adj_matrix.shape[0])
+            if adj_matrix[stack_idx, idx] is not None and stack_opps[stack_idx] != "memory"
+        )
+
+        # node branches or merges
         if row_counts > 1 or col_count > 1:
             branches.append(idx)
 
@@ -123,12 +130,14 @@ def _get_aggreement(node_indexes, aggreement_stacks):
     """
     if not aggreement_stacks:
         return "all"
-    stack_indexes = [None for _ in aggreement_stacks]
+
+    stack_index_map = {node: i for i, node in enumerate(aggreement_stacks)}
+    stack_indexes = [None] * len(aggreement_stacks)
+
     for node in node_indexes:
-        try:
-            stack_indexes[aggreement_stacks.index(node[0])] = node[1]
-        except ValueError:
-            continue  # non-aggreement node in path
+        index = stack_index_map.get(node[0])
+        if index is not None:
+            stack_indexes[index] = node[1]
 
     return tuple(stack_indexes)
 
@@ -143,48 +152,57 @@ def _ap_works(group_ap, new_ap):
     Returns:
         bool: match
     """
-    matches = True
-    for idx, node in enumerate(group_ap):
-        if new_ap[idx] != node and new_ap[idx] is not None and node is not None:
-            matches = False
-    return matches
-
+    return all(new_ap[idx] == node or new_ap[idx] is None or node is None for idx, node in enumerate(group_ap))
 
 def _add_group(groups, group, stack_aggreement, cur_path, stack_coverage):
     """adds this path to the group of paths
 
     Args:
-        groups (tuple): all groups of paths
-        group (list): group to add to
+        groups (list)): all groups of paths
+        group (dict): group to add to
         stack_aggreement (set): which nodes need to aggree
         cur_path (list): this path
         stack_coverage (set): Current path coverage
     """
-    new = False
-    for idx, val in enumerate(group["ap"]):
-        if (val is None) != (stack_aggreement[idx] is None) and (
-            val is None or stack_aggreement[idx] is None
-        ):
-            new = True
 
-    if new:  # there are None's so keep original
-        new_group = copy.deepcopy(group)
-        new_group["ap"] = [
-            (a if a is not None else b)
-            for a, b in zip(new_group["ap"], stack_aggreement)
-        ]
-        new_group["paths"] += cur_path
-        new_group["coverage_groups"].append(stack_coverage)
-        new_group["total_coverage"].update(stack_coverage)
-        groups.append(new_group)
+    # Faster method by considering found paths as optimal and extending them if posiable.
+    new_ap = list(group['ap'])
+    for idx in range(len(group['ap'])):
+        new_aggreement = stack_aggreement[idx]
+        if new_aggreement is not None:
+            new_ap[idx] = new_aggreement
 
-    else:  # perfect match so mutate group in place
-        group["ap"] = [
-            (a if a is not None else b) for a, b in zip(group["ap"], stack_aggreement)
-        ]
-        group["paths"] += cur_path
-        group["coverage_groups"].append(stack_coverage)
-        group["total_coverage"].update(stack_coverage)
+    group['ap'] = tuple(new_ap)
+    group['paths'] += cur_path
+    group["coverage_groups"].append(stack_coverage)
+    group["total_coverage"].update(stack_coverage)
+
+    # Slower method by considering and extending them, but also leaving them around for later additions
+    # new = False
+    # for idx, val in enumerate(group["ap"]):
+    #     if (val is None) != (stack_aggreement[idx] is None) and (
+    #         val is None or stack_aggreement[idx] is None
+    #     ):
+    #         new = True
+
+    # if new:  # there are None's so keep original
+    #     new_group = copy.deepcopy(group)
+    #     new_group["ap"] = [
+    #         (a if a is not None else b)
+    #         for a, b in zip(new_group["ap"], stack_aggreement)
+    #     ]
+    #     new_group["paths"] += cur_path
+    #     new_group["coverage_groups"].append(stack_coverage)
+    #     new_group["total_coverage"].update(stack_coverage)
+    #     groups.append(new_group)
+
+    # else:  # perfect match so mutate group in place
+    #     group["ap"] = [
+    #         (a if a is not None else b) for a, b in zip(group["ap"], stack_aggreement)
+    #     ]
+    #     group["paths"] += cur_path
+    #     group["coverage_groups"].append(stack_coverage)
+    #     group["total_coverage"].update(stack_coverage)
 
 
 def _ending_node(cur_path, aggreement_stacks, groups, all_nodes):
@@ -197,15 +215,25 @@ def _ending_node(cur_path, aggreement_stacks, groups, all_nodes):
     stack_aggreement = _get_aggreement(cur_path, aggreement_stacks)
     stack_coverage = _extract_stacks(cur_path)
 
+    if stack_aggreement == 'all' and stack_coverage == all_nodes:
+        return set(cur_path)
+
     added = False
     for group in groups:
         if (
-            _ap_works(group["ap"], stack_aggreement)
-            and stack_coverage not in group["coverage_groups"]
-            and group["total_coverage"] - stack_coverage != {}
-        ):  # same coverage, new path
+            _ap_works(group["ap"], stack_aggreement) and        # aggreement matches
+            stack_coverage - group["total_coverage"] != {}      # adds coverage
+
+            # and stack_coverage not in group["coverage_groups"]  # not previously covered
+            # and stack_coverage - group["total_coverage"] != {}  # includes new stacks
+            # and group["total_coverage"] - stack_coverage != {}  # includes new stacks
+        ):
             _add_group(groups, group, stack_aggreement, cur_path, stack_coverage)
+
+            if group["total_coverage"] == all_nodes:    # group reached full coverage:
+                return set(group["paths"])
             added = True
+
 
     if not added:
         groups.append(
@@ -216,12 +244,6 @@ def _ending_node(cur_path, aggreement_stacks, groups, all_nodes):
                 "total_coverage": stack_coverage,
             }
         )
-
-    for group in groups:
-        # group reached full coverage:
-        if group["total_coverage"] == all_nodes:
-            return set(group["paths"])
-
     return None
 
 
@@ -237,8 +259,8 @@ def _rolling_dijkstra(graph, weight_variable):
     que = []
     for stack_id in graph.in_nodes:
         que.append(
-            (0, ((graph.id_to_idx[stack_id], 0),))
-        )  # (cur_dist, ( (graph.id_to_idx[stack_id], 0), ) )
+            (0, ((graph.id_to_idx[stack_id], 0),) )
+        )  # (cur_dist, ( (stack_idx), node_idx), ) )
     groups = []
 
     while que:
@@ -247,7 +269,6 @@ def _rolling_dijkstra(graph, weight_variable):
         neighbor_stacks = graph.get_stack_neighbors(cur_node[0])
 
         if neighbor_stacks == []:  # ending node
-
             found = _ending_node(cur_path, aggreement_stacks, groups, all_nodes)
             if found:
                 return found
@@ -258,7 +279,8 @@ def _rolling_dijkstra(graph, weight_variable):
                 edge_weight = stack_connection[cur_node[1]][node]
                 node_cost = node_value_selection[weight_variable](node_obj)
                 new_distance = cur_dist + node_cost + edge_weight
-                heapq.heappush(que, (new_distance, cur_path + ((neighbor, node),)))
+                heapq.heappush(que, (new_distance, cur_path + ((neighbor, node), )))
+
     raise ValueError(
         "These operations are not computable with this hardware. Change hardware or algorithms for the hardware."
     )
@@ -277,7 +299,6 @@ def select_nodes(subgraphs, weight_variable):
     flat_subgraphs = []
     for i, subgraph in enumerate(subgraphs):
         nodes = _rolling_dijkstra(subgraph, weight_variable=weight_variable)
-        print(f'subgraph: {i}')
 
         subgraph_nodes_list = []
         for node in nodes:
