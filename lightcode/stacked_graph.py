@@ -127,6 +127,7 @@ class Graph:
         self.id_to_idx = {v.stack_id: i for i, v in enumerate(self.node_list)}
         self.in_nodes = self._get_in()
         self.out_nodes = self._get_out()
+        self.residual = set()
         self.weight_variable = weight_variable
         self.adj_matrix = self._creat_adj_matrix()
 

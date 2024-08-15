@@ -12,6 +12,7 @@ import onnx
 import numpy as np
 import os
 import io
+import pickle
 
 
 import torch
@@ -174,16 +175,16 @@ def onnx_to_relay(
         with open(graph_json_path, "w") as f:
             f.write(lib.get_graph_json())
 
-        # Create the function library
-        lib.export_library(f"{model_name_save}_lib.so")
-        lib.export_library(f"models/{model_name_save}_lib.tar")
+        # # Create the function library
+        # lib.export_library(f"{model_name_save}_lib.so")
+        # lib.export_library(f"models/{model_name_save}_lib.tar")
 
-        # Creat paramater library
-        param_dict = lib.get_params()
-        param_bytes_path = f"models/{model_name_save}_params.params"
-        with open(param_bytes_path, "wb") as f:
-            # f.write(relay.save_param_dict(param_dict).get_bytearray())
-            f.write(relay.save_param_dict(param_dict))
+        # # Creat paramater library
+        # param_dict = lib.get_params()
+        # param_bytes_path = f"models/{model_name_save}_params.params"
+        # with open(param_bytes_path, "wb") as f:
+        #     # f.write(relay.save_param_dict(param_dict).get_bytearray())
+        #     f.write(relay.save_param_dict(param_dict))
 
     return lib
 
@@ -253,12 +254,12 @@ def tvm_validation(model_name, prompt):
     # print(gen_text)
 
 
-# model_name = 'gpt2'
 model_name = "meta-llama/Llama-2-7b-hf"
 prompt = "My favorite music is "
 
 inputs = transformer_torch_to_onnx(model_name, prompt)
-lib = onnx_to_relay(inputs, run=True, write=False, model_name=model_name, opt_level=3)
+lib = onnx_to_relay(inputs, run=False, write=True, model_name=model_name, opt_level=3)
+
 
 """
 model_name = "gpt2"

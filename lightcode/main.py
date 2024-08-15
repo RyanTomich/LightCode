@@ -193,7 +193,8 @@ def debug_forward(
 
 if __name__ == "__main__":  # import guard
 
-    relay_path = "models/gpt2_graph.json"
+    # relay_path = "models/gpt2_graph.json"
+    relay_path = "models/Llama-2-7b-hf_graph.json"
 
     optimization = "time"
     # optimization = "energy"

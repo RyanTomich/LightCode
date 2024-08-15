@@ -18,6 +18,8 @@ def group_validate(graph, groups):
                 # assert parent in included
                 if parent not in included:
                     if graph.stack_list[parent].opp and graph.stack_list[stack].opp in ['slice', 'add']:
+                        graph.residual.add(parent)
+                        graph.residual.add(stack)
                         graph.stack_list[stack].residual=True
                     else:
                         assert False
@@ -73,6 +75,8 @@ def merge_i_o(full_node_list, original_graph):
                     - original_graph.out_nodes
                 )
                 this_parent = {int(parent) for parent in node.parents}
+                if this_parent != original_parents:
+                    print(dir(node.stack))
                 assert this_parent == original_parents
     return True
 

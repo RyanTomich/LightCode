@@ -433,6 +433,12 @@ def _time_shift(available_hardware, graph, time):
         for key in sub_dict:
             sub_dict[key] += time
 
+def _add_residual(original_graph, node_list):
+    for node in node_list:
+        if hasattr(node.stack, 'residual'):
+            original_stack = original_graph.get_node_obj(node.stack_id)
+            residual_parrents = {parent for parent in original_stack.parents if parent in original_graph.residual}
+            node.parents.update(residual_parrents)
 
 def _add_in_out(original_graph, node_list):
     """add i/o nodes to graph
@@ -549,6 +555,7 @@ def schdeule_nodes(
         )
         print("...     ... Subgraph Scheduled ...") if hw.DEBUG_PRINT else None
 
+    _add_residual(original_graph, full_node_list)
     test.merge_i_o(full_node_list, original_graph)
     _add_in_out(original_graph, full_node_list)
 
