@@ -52,8 +52,10 @@ def ten_elm(tensor_shape):
 def all_elm(i, o):
     return ten_elm(o[0])
 
+
 def all_elm_const(c):
-    return lambda i,o: ten_elm(o[0]) * c
+    return lambda i, o: ten_elm(o[0]) * c
+
 
 def standard_energy(i, o):
     return JOULE_PER_CYCLE
@@ -248,6 +250,15 @@ class PHU(Hardware):
                     )
                 },
             ),
+            "matrix_matrix_phu": HardwareAlgorithm(
+                "matrix_prod",
+                {
+                    self: (
+                        self._phu_matmul_task_para_cycles,
+                        self._phu_matmul_task_para_energy,
+                    )
+                },
+            ),
             "dot_prod_phu": HardwareAlgorithm(
                 "dot_prod",
                 {
@@ -280,7 +291,9 @@ class CPU(Hardware):
         self.num_cores = num_cores
         self.mac_energy = 0.1 * PICO_JOULE
         self.algs = {
-            "add": HardwareAlgorithm("add", {self: (self._add_cycles, standard_energy)}),
+            "add": HardwareAlgorithm(
+                "add", {self: (self._add_cycles, standard_energy)}
+            ),
             "subtract": HardwareAlgorithm(
                 "subtract", {self: (all_elm, standard_energy)}
             ),
@@ -290,7 +303,9 @@ class CPU(Hardware):
             "divide": HardwareAlgorithm("divide", {self: (all_elm, standard_energy)}),
             "sqrt": HardwareAlgorithm("sqrt", {self: (all_elm, standard_energy)}),
             "rsqrt": HardwareAlgorithm("rsqrt", {self: (all_elm, standard_energy)}),
-            "relu": HardwareAlgorithm("relu", {self: (all_elm_const(2), standard_energy)}),
+            "relu": HardwareAlgorithm(
+                "relu", {self: (all_elm_const(2), standard_energy)}
+            ),
             "tanh": HardwareAlgorithm(
                 "tanh", {self: (all_elm_const(4), standard_energy)}
             ),
@@ -320,9 +335,15 @@ class CPU(Hardware):
             "where": HardwareAlgorithm("where", {self: (constnat(1), standard_energy)}),
             "erf": HardwareAlgorithm("erf", {self: (constnat(1), standard_energy)}),
             "slice": HardwareAlgorithm("slice", {self: (constnat(1), standard_energy)}),
-            "negative": HardwareAlgorithm("negative", {self: (all_elm, standard_energy)}),
-            "concatenate": HardwareAlgorithm("concatenate", {self: (constnat(1), standard_energy)}),
-            "sigmoid": HardwareAlgorithm("sigmoid", {self: (all_elm_const(4), standard_energy)}),
+            "negative": HardwareAlgorithm(
+                "negative", {self: (all_elm, standard_energy)}
+            ),
+            "concatenate": HardwareAlgorithm(
+                "concatenate", {self: (constnat(1), standard_energy)}
+            ),
+            "sigmoid": HardwareAlgorithm(
+                "sigmoid", {self: (all_elm_const(4), standard_energy)}
+            ),
             "cast": HardwareAlgorithm("cast", {self: (all_elm, standard_energy)}),
             "equal": HardwareAlgorithm("equal", {self: (all_elm, standard_energy)}),
             "to": HardwareAlgorithm("to", {self: (all_elm, standard_energy)}),
@@ -338,7 +359,6 @@ class CPU(Hardware):
 
         time = (m * num_add) + b
         return time * self.clock_speed
-
 
     def _cpu_matmul_cycles(self, i, o):
         num_dot_products = ten_elm(o[0])
@@ -356,8 +376,6 @@ class CPU(Hardware):
 
         time = (m * num_mac) + b
         return time * self.clock_speed
-
-
 
     def _cpu_matmul_energy(self, i, o):
         num_dot_products = ten_elm(o[0])

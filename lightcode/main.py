@@ -32,22 +32,8 @@ def forward(
     WEIGHT_VARIABLE = optimization
 
     graph = sg.StackGraph(raw_json=raw_json, weight_variable=WEIGHT_VARIABLE)
-
-    # print(graph.stack_list[69])
-    # slice_2 = {1027, 1288, 1549, 1810, 2071, 2332, 157, 2593, 418, 679, 940, 1201, 1462, 1723, 1984, 2245, 70, 2506, 331, 2767, 592, 853, 1114, 1375, 1636, 1897, 2158, 2419, 244, 2680, 505, 766}
-    # for stack in graph.stack_list:
-    #     if any(a in slice_2 for a in stack.parents):
-    #         pass
-    #         # print(stack.tvm_func)
-    #         # print(stack.stack_id)
-    # print(f'{slice_2=}')
-
-    stacked_subgraphs = list(
-        gt.graph_partition(graph, weight_variable=WEIGHT_VARIABLE)
-    )
-    flat_subgraphs = gt.select_nodes(
-        stacked_subgraphs, weight_variable=WEIGHT_VARIABLE
-    )
+    stacked_subgraphs = list(gt.graph_partition(graph, weight_variable=WEIGHT_VARIABLE))
+    flat_subgraphs = gt.select_nodes(stacked_subgraphs, weight_variable=WEIGHT_VARIABLE)
     expanded_flat_subgraphs = gt.expand_nodes(flat_subgraphs)
     scheduled_flat_graph, end_time, break_points = gt.schdeule_nodes(
         graph, expanded_flat_subgraphs, available_hardware
@@ -222,7 +208,7 @@ if __name__ == "__main__":  # import guard
     hw.Hardware._hardware_reset()
     # hardware.append(hw.CPU(CPU_MAX_CLOCK, 1))
     hardware.append(hw.CPU(CPU_AVERAGE_CLOCK, 1))
-    # hardware.append(hw.PHU(PHU_MIN_CLOCK, 1, 20))
+    hardware.append(hw.PHU(PHU_MIN_CLOCK, 1, 20))
 
     # available_hardware = hw.initilize_hardware([hw.CPU(14792899408, 1)])
     available_hardware = hw.initilize_hardware(hardware)

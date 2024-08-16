@@ -59,7 +59,7 @@ def transformer_torch_to_onnx(model_name, prompt):
     save(bool) samve model to files
     """
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    model_name_save = model_name.split('/', 1)[-1]
+    model_name_save = model_name.split("/", 1)[-1]
 
     # get model from transformer library
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -91,13 +91,15 @@ def transformer_torch_to_onnx(model_name, prompt):
 
         torch.onnx.export(
             model,
-            (inputs['input_ids'], inputs['attention_mask']),
+            (inputs["input_ids"], inputs["attention_mask"]),
             onnx_file_path,
-            input_names=['input_ids', 'attention_mask'],
-            output_names=['logits'],
-            dynamic_axes={'input_ids': {0: 'batch_size', 1: 'sequence'},
-                        'attention_mask': {0: 'batch_size', 1: 'sequence'},
-                        'logits': {0: 'batch_size', 1: 'sequence'}}
+            input_names=["input_ids", "attention_mask"],
+            output_names=["logits"],
+            dynamic_axes={
+                "input_ids": {0: "batch_size", 1: "sequence"},
+                "attention_mask": {0: "batch_size", 1: "sequence"},
+                "logits": {0: "batch_size", 1: "sequence"},
+            },
         )
     return inputs
 
@@ -114,15 +116,11 @@ def onnx_to_relay(
     """
     input_ids = inputs.input_ids
 
-    model_name_save = model_name.split('/', 1)[-1]
+    model_name_save = model_name.split("/", 1)[-1]
     model_onnx_path = f"models/{model_name_save}.onnx"
     model_onnx = onnx.load(model_onnx_path)
 
-
-    shape_dict = {
-        "input_ids": input_ids.shape,
-        "attention_mask": input_ids.shape
-    }
+    shape_dict = {"input_ids": input_ids.shape, "attention_mask": input_ids.shape}
 
     onnx.checker.check_model(model_onnx_path)
     mod, params = relay.frontend.from_onnx(
@@ -131,18 +129,18 @@ def onnx_to_relay(
 
     # Export model graph parts
     config = {
-            "relay.FuseOps.max_depth": 0, # -1 0 1 2 3
-            # "tir.disable_vectorize": True,
-            # "relay.transform.FoldScaleAxis": True,
-            # "relay.transform.MergeComposite": True,
-            # "tir.transform.Simplify": True,
-            # "tir.transform.RenameBuffer": True,
-            # "tir.transform.Vectorize": True,
-            # "relay.transform.SimplifyInference": True,
-            # "relay.transform.AnnotateSpans": True,
-            # "relay.transform.PostFuse": True,
-            # "relay.transform.Quantize": True,
-        }
+        "relay.FuseOps.max_depth": 0,  # -1 0 1 2 3
+        # "tir.disable_vectorize": True,
+        # "relay.transform.FoldScaleAxis": True,
+        # "relay.transform.MergeComposite": True,
+        # "tir.transform.Simplify": True,
+        # "tir.transform.RenameBuffer": True,
+        # "tir.transform.Vectorize": True,
+        # "relay.transform.SimplifyInference": True,
+        # "relay.transform.AnnotateSpans": True,
+        # "relay.transform.PostFuse": True,
+        # "relay.transform.Quantize": True,
+    }
     target = tvm.target.Target("llvm", host="llvm")
     with tvm.transform.PassContext(opt_level=opt_level, config=config):
         lib = relay.build(mod, target=target, params=params)
@@ -152,22 +150,22 @@ def onnx_to_relay(
         module = graph_executor.GraphModule(lib["default"](target))
 
         # Set inputs
-        input_ids = tvm.nd.array(inputs['input_ids'].numpy())
-        attention_mask = tvm.nd.array(inputs['attention_mask'].numpy())
-        module.set_input('input_ids', input_ids)
-        module.set_input('attention_mask', attention_mask)
+        input_ids = tvm.nd.array(inputs["input_ids"].numpy())
+        attention_mask = tvm.nd.array(inputs["attention_mask"].numpy())
+        module.set_input("input_ids", input_ids)
+        module.set_input("attention_mask", attention_mask)
 
         # Run inference
         module.run()
 
         # Get outputs
         logits = module.get_output(0).asnumpy()
-        print(logits.shape) # (1, 6, 32000)
+        print(logits.shape)  # (1, 6, 32000)
 
         last_token_logits = logits[0, -1, :]
         next_token_id = np.argmax(last_token_logits)
 
-        print(f'{input_ids} + {next_token_id}')
+        print(f"{input_ids} + {next_token_id}")
 
     if write:
         # Save the graph JSON to a file

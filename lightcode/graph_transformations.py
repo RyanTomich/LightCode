@@ -25,7 +25,7 @@ def graph_partition(graph, weight_variable="time"):
     graph: StackedGraph
     """
     for stack in graph.stack_list:
-        if stack.opp == 'nd':
+        if stack.opp == "nd":
             scatter_stack = stack
             continue
 
@@ -112,14 +112,18 @@ def _make_aggreement_list(graph):
 
     for idx in range(adj_matrix.shape[1]):
         row_counts = sum(
-            1 for stack_idx in range(adj_matrix.shape[1])
-            if adj_matrix[idx, stack_idx] is not None and stack_opps[stack_idx] != "memory"
+            1
+            for stack_idx in range(adj_matrix.shape[1])
+            if adj_matrix[idx, stack_idx] is not None
+            and stack_opps[stack_idx] != "memory"
         )
 
         # Count non-memory elements in the column
         col_count = sum(
-            1 for stack_idx in range(adj_matrix.shape[0])
-            if adj_matrix[stack_idx, idx] is not None and stack_opps[stack_idx] != "memory"
+            1
+            for stack_idx in range(adj_matrix.shape[0])
+            if adj_matrix[stack_idx, idx] is not None
+            and stack_opps[stack_idx] != "memory"
         )
 
         # node branches or merges
@@ -159,7 +163,11 @@ def _ap_works(group_ap, new_ap):
     Returns:
         bool: match
     """
-    return all(new_ap[idx] == node or new_ap[idx] is None or node is None for idx, node in enumerate(group_ap))
+    return all(
+        new_ap[idx] == node or new_ap[idx] is None or node is None
+        for idx, node in enumerate(group_ap)
+    )
+
 
 def _add_group(groups, group, stack_aggreement, cur_path, stack_coverage):
     """adds this path to the group of paths
@@ -173,14 +181,14 @@ def _add_group(groups, group, stack_aggreement, cur_path, stack_coverage):
     """
 
     # Faster method by considering found paths as optimal and extending them if posiable.
-    new_ap = list(group['ap'])
-    for idx in range(len(group['ap'])):
+    new_ap = list(group["ap"])
+    for idx in range(len(group["ap"])):
         new_aggreement = stack_aggreement[idx]
         if new_aggreement is not None:
             new_ap[idx] = new_aggreement
 
-    group['ap'] = tuple(new_ap)
-    group['paths'] += cur_path
+    group["ap"] = tuple(new_ap)
+    group["paths"] += cur_path
     group["coverage_groups"].append(stack_coverage)
     group["total_coverage"].update(stack_coverage)
 
@@ -222,25 +230,23 @@ def _ending_node(cur_path, aggreement_stacks, groups, all_nodes):
     stack_aggreement = _get_aggreement(cur_path, aggreement_stacks)
     stack_coverage = _extract_stacks(cur_path)
 
-    if stack_aggreement == 'all' and stack_coverage == all_nodes:
+    if stack_aggreement == "all" and stack_coverage == all_nodes:
         return set(cur_path)
 
     added = False
     for group in groups:
         if (
-            _ap_works(group["ap"], stack_aggreement) and        # aggreement matches
-            stack_coverage - group["total_coverage"] != {}      # adds coverage
-
+            _ap_works(group["ap"], stack_aggreement)  # aggreement matches
+            and stack_coverage - group["total_coverage"] != {}  # adds coverage
             # and stack_coverage not in group["coverage_groups"]  # not previously covered
             # and stack_coverage - group["total_coverage"] != {}  # includes new stacks
             # and group["total_coverage"] - stack_coverage != {}  # includes new stacks
         ):
             _add_group(groups, group, stack_aggreement, cur_path, stack_coverage)
 
-            if group["total_coverage"] == all_nodes:    # group reached full coverage:
+            if group["total_coverage"] == all_nodes:  # group reached full coverage:
                 return set(group["paths"])
             added = True
-
 
     if not added:
         groups.append(
@@ -266,7 +272,7 @@ def _rolling_dijkstra(graph, weight_variable):
     que = []
     for stack_id in graph.in_nodes:
         que.append(
-            (0, ((graph.id_to_idx[stack_id], 0),) )
+            (0, ((graph.id_to_idx[stack_id], 0),))
         )  # (cur_dist, ( (stack_idx), node_idx), ) )
     groups = []
 
@@ -286,7 +292,7 @@ def _rolling_dijkstra(graph, weight_variable):
                 edge_weight = stack_connection[cur_node[1]][node]
                 node_cost = node_value_selection[weight_variable](node_obj)
                 new_distance = cur_dist + node_cost + edge_weight
-                heapq.heappush(que, (new_distance, cur_path + ((neighbor, node), )))
+                heapq.heappush(que, (new_distance, cur_path + ((neighbor, node),)))
 
     raise ValueError(
         "These operations are not computable with this hardware. Change hardware or algorithms for the hardware."
@@ -440,11 +446,15 @@ def _time_shift(available_hardware, graph, time):
         for key in sub_dict:
             sub_dict[key] += time
 
+
 def _add_residual(original_graph, node_list):
     for node in node_list:
-        if node.stack_id in original_graph.residual: # is ending node to residual connection
+        if (
+            node.stack_id in original_graph.residual
+        ):  # is ending node to residual connection
             original_stack = original_graph.get_node_obj(node.stack_id)
             node.parents.update(original_stack.parents)
+
 
 def _add_in_out(original_graph, node_list):
     """add i/o nodes to graph
@@ -602,10 +612,10 @@ def _group_dot_products(m1, m2):
     """
     groups = {}
     if m1[-2] <= m2[-2]:  # a <= c in axb @ bxc
-        for dot_prod in pa.nd_tensor_product(m1, m2):
+        for dot_prod in pa.nd_tensor_to_dot(m1, m2):
             groups.setdefault(dot_prod[0], (dot_prod[2], []))[1].append(dot_prod[1])
     else:  # a > c
-        for dot_prod in pa.nd_tensor_product(m1, m2):
+        for dot_prod in pa.nd_tensor_to_dot(m1, m2):
             groups.setdefault(dot_prod[1], (dot_prod[2], []))[1].append(dot_prod[0])
     return groups
 
@@ -617,7 +627,8 @@ def _matmul_graph(node):
         node (Node): Photonic algorithm
     """
     m1, m2 = node.input_shapes
-    dot_prod_groups = _group_dot_products(m1, m2)
+    # dot_prod_groups = _group_dot_products(m1, m2)
+    mtrx_mtrx = list(pa.nd_tensor_to_matx(tuple(m1), tuple(m2)))
 
     split_node = sg.Node("split", node.stack)
     split_node.stack_id -= 0.1
@@ -629,12 +640,10 @@ def _matmul_graph(node):
     merge_node.input_shapes = []
 
     node_expansion_func = pa.node_expansion[node.algorithm]
+
     subnodes = []
-    for common_operand, operand_info in dot_prod_groups.items():
-        size, unique_operands = operand_info
-        subnodes += node_expansion_func(
-            node, size, common_operand, unique_operands
-        )  # (node, size, common_operand, unique_operands)
+    for mtrx_product in mtrx_mtrx:
+        subnodes.append(node_expansion_func(node, *mtrx_product))
 
     for subnode in subnodes:
         split_node.output_shapes += subnode.input_shapes

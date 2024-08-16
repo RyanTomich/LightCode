@@ -28,7 +28,7 @@ def _matmul(m1, m2, preamble):
             # yield f'm1{preamble + [row, ':']} * m2{preamble + [col, ':']}  -  {m1[-1]}'
 
 
-def nd_tensor_product(m1, m2, preamble=()):
+def nd_tensor_to_dot(m1, m2, preamble=()):
     """Breaks tensor down to the level of matrix multiplication
 
     Args:
@@ -44,7 +44,21 @@ def nd_tensor_product(m1, m2, preamble=()):
     else:
         for dimention in range(m1[0]):
             preamble = preamble + (dimention,)
-            yield from nd_tensor_product(m1[1:], m2[1:], preamble=preamble)
+            yield from nd_tensor_to_dot(m1[1:], m2[1:], preamble=preamble)
+            preamble = preamble[:-1]
+
+
+def nd_tensor_to_matx(m1, m2, preamble=()):
+    if len(m1) == 2:
+        yield (
+            preamble,  # index
+            m1,  # size m1
+            m2,  # size m2
+        )
+    else:
+        for dimention in range(m1[0]):
+            preamble = preamble + (dimention,)
+            yield from nd_tensor_to_matx(m1[1:], m2[1:], preamble=preamble)
             preamble = preamble[:-1]
 
 
@@ -76,32 +90,42 @@ def _multiplex_groups(hardware, size, common_operand, unique_operands):
         yield (size, common_operand, unique_operands[start:])
 
 
-def _task_para_node_gen(node, size, common_operand, unique_operands):
-    """takes group of dot dot products and creates list of nodes for a computational graph
+def _task_para_node_gen(node, index, m1, m2):
+    """takes group of matrix matrix products and creates list of nodes for a computational graph
 
     Args:
         size (int): lenth of each dorproduct
         common_operand (tup): m1()
         unique_operands (list): list of m2()
     """
+    assert len(m1) == len(m2) == 2  # two dimentions
+
     hardware = hw.Hardware.algs[node.algorithm].hardware
-    subnodes = []
-    for multiplex in _multiplex_groups(hardware, size, common_operand, unique_operands):
-        size, common_operand, unique_subset = multiplex
+    subnode = sg.Node("matrix_matrix_phu", node.stack)
+    subnode.parents = [node.stack_id - 0.1]
+    subnode.index = index
+    subnode.input_shapes = [list(m1), list(m2)]
+    subnode.output_shapes = [[m1[0], m2[0]]]
+    hw.NODE_COUNT += 1
+    subnode.stack_id = hw.NODE_COUNT
+    return subnode
 
-        subnode = sg.Node("dot_prod_phu", node.stack)
-        subnode.parents = [node.stack_id - 0.1]
+    # for multiplex in _multiplex_groups(hardware, size, common_operand, unique_operands):
+    #     size, common_operand, unique_subset = multiplex
 
-        subnode.input_shapes = [
-            [len(unique_subset) + 1, size]
-        ]  # multiplex vectors + common vector
-        subnode.output_shapes = [[1, len(unique_subset) + 1]]
+    #     subnode = sg.Node("dot_prod_phu", node.stack)
+    #     subnode.parents = [node.stack_id - 0.1]
 
-        hw.NODE_COUNT += 1
-        subnode.stack_id = hw.NODE_COUNT
-        subnodes.append(subnode)
+    #     subnode.input_shapes = [
+    #         [len(unique_subset) + 1, size]
+    #     ]  # multiplex vectors + common vector
+    #     subnode.output_shapes = [[1, len(unique_subset) + 1]]
 
-    return subnodes
+    #     hw.NODE_COUNT += 1
+    #     subnode.stack_id = hw.NODE_COUNT
+    #     subnodes.append(subnode)
+
+    # return subnodes
 
 
 def _dynamic_para_node_gen(common_operand, unique_operands):
