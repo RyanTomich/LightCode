@@ -245,6 +245,13 @@ def _ending_node(cur_path, aggreement_stacks, groups, all_nodes):
             _add_group(groups, group, stack_aggreement, cur_path, stack_coverage)
 
             if group["total_coverage"] == all_nodes:  # group reached full coverage:
+                stacks_seen = set()
+                nodes = set()
+                for node in group["paths"]:
+                    if node[0] not in stacks_seen:
+                        nodes.add(node)
+                        stacks_seen.add(node[0])
+                return nodes
                 return set(group["paths"])
             added = True
 

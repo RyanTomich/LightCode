@@ -8,6 +8,7 @@ template_base = "{start_time:.10f}     {hardware:<8}     {core:4d}     {func:<40
 template_out = "o{out_var:<5} "
 template_in = "i{in_var:<5} "
 
+
 def get_class_obj(hardware_core):
     if "<" not in hardware_core:
         return hardware_core, 0
@@ -88,10 +89,9 @@ def code_gen(scheduled_flat_graph):
 
             seen.add(node.node_id)
 
-
-            if hardware == 'memory':
-                function = 'memory'
-            elif hardware == 'PHU':
+            if hardware == "memory":
+                function = "memory"
+            elif hardware == "PHU":
                 function = node.algorithm
             elif node.stack.tvm_func is not None:
                 function = node.stack.tvm_func

@@ -40,14 +40,7 @@ def forward(
     )
     schedule_df = scheduled_flat_graph.create_schedule_data()
 
-    # print(schedule_df.columns)
     test.graph_validate(scheduled_flat_graph)
-
-    # for node in scheduled_flat_graph.node_list:
-    #     if isinstance(node.stack_id, float):
-    #         print(node.node_id)
-    #         print(node)
-
     cg.code_gen(scheduled_flat_graph)
 
     print("---------- INFO ----------")
@@ -201,8 +194,8 @@ if __name__ == "__main__":  # import guard
     # relay_path = "models/Llama-2-7b-hf_graph.json"
     relay_path = "models/opt0_Llama-2-7b-hf_graph.json"
 
-    optimization = "time"
-    # optimization = "energy"
+    # optimization = "time"
+    optimization = "energy"
 
     # cpu_freq = psutil.cpu_freq()
     # print(cpu_freq)
