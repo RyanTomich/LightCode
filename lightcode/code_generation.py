@@ -1,13 +1,12 @@
 import testing as test
 import re
-import importlib
+import math
 
 # Code format
-header = f"|start_time |---|hardware|---|core|---|________________tvm_func________________|---|____opp___|---|_io___\n\n"
-template_base = "{start_time:.10f}     {hardware:<8}     {core:4d}     {func:<40}     {opp:<10}     "
+header = f"|start_time |---|hardware|---|core|---|________________function________________|---|_________opp________|---|_io___\n\n"
+template_base = "{start_time:.10f}     {hardware:<8}     {core:4d}     {func:<40}     {opp:<20}     "
 template_out = "o{out_var:<5} "
 template_in = "i{in_var:<5} "
-
 
 def get_class_obj(hardware_core):
     if "<" not in hardware_core:
@@ -50,6 +49,7 @@ def code_gen(scheduled_flat_graph):
 
     sorted_nodes = scheduled_flat_graph.get_sorted_nodes()
 
+    # assumes parrents are earlier in sorted nodes than children
     seen = set()
     node_children = {}
     for node in sorted_nodes:
@@ -68,29 +68,41 @@ def code_gen(scheduled_flat_graph):
 
             input_variables = []
             for parent in node.parents:
-                parent_node_id = scheduled_flat_graph.get_node_obj(parent).node_id
+                parent_obj = scheduled_flat_graph.get_node_obj(parent)
+                parent_node_id = parent_obj.node_id
                 assert parent_node_id in seen
-                input_variables.extend(node_variables[parent_node_id])
+
+                fractional_part, _ = math.modf(parent_obj.stack_id)
+                if math.isclose(fractional_part, 0.9, abs_tol=1e-9):
+                    input_variables.extend(node_variables[parent_node_id][:2])
+                    node_variables[parent_node_id].pop(0)
+                    node_variables[parent_node_id].pop(0)
+                else:
+                    input_variables.extend(node_variables[parent_node_id])
+            # print(len(node.output_shapes))
             output_variables = [get_variable() for _ in range(len(node.output_shapes))]
 
-            # print(output_variables)
             node_variables[node.node_id] = output_variables
 
             hardware, core = get_class_obj(node.hardware_selection)
 
             seen.add(node.node_id)
 
+
+            if hardware == 'memory':
+                function = 'memory'
+            elif hardware == 'PHU':
+                function = node.algorithm
+            elif node.stack.tvm_func is not None:
+                function = node.stack.tvm_func
+
             file.write(
                 template_base.format(
                     start_time=node.start_time,
                     hardware=hardware,
                     core=core,
-                    func=(
-                        node.stack.tvm_func
-                        if node.stack.tvm_func is not None
-                        else "memory"
-                    ),
-                    opp=node.stack.opp,
+                    func=function,
+                    opp=node.algorithm,
                 )
             )
 

@@ -40,7 +40,15 @@ def forward(
     )
     schedule_df = scheduled_flat_graph.create_schedule_data()
 
-    # cg.code_gen(scheduled_flat_graph)
+    # print(schedule_df.columns)
+    test.graph_validate(scheduled_flat_graph)
+
+    # for node in scheduled_flat_graph.node_list:
+    #     if isinstance(node.stack_id, float):
+    #         print(node.node_id)
+    #         print(node)
+
+    cg.code_gen(scheduled_flat_graph)
 
     print("---------- INFO ----------")
     print(f"{WEIGHT_VARIABLE=}")
@@ -208,7 +216,7 @@ if __name__ == "__main__":  # import guard
     hw.Hardware._hardware_reset()
     # hardware.append(hw.CPU(CPU_MAX_CLOCK, 1))
     hardware.append(hw.CPU(CPU_AVERAGE_CLOCK, 1))
-    hardware.append(hw.PHU(PHU_MIN_CLOCK, 1, 20))
+    # hardware.append(hw.PHU(PHU_MIN_CLOCK, 1, 20))
 
     # available_hardware = hw.initilize_hardware([hw.CPU(14792899408, 1)])
     available_hardware = hw.initilize_hardware(hardware)
