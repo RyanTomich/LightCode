@@ -104,3 +104,10 @@ def schedule_validate(schedule_df):
 
     # print("... No Overlaps ...")
     return stagnent_time
+
+
+def graph_validate(graph):
+    """flat graph validation"""
+    for node in graph.node_list:
+        for parrent in node.parents:
+            assert parrent in graph.id_to_idx

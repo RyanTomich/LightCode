@@ -512,14 +512,21 @@ def _schedule_in_out(graph, available_hardware):
     min_start_time = np.inf
     for node in graph.in_nodes:
         node_obj = graph.get_node_obj(node)
-        child = [
-            (idx, cost)
-            for idx, cost in enumerate(graph.adj_matrix[graph.id_to_idx[node]])
-            if cost is not None
-        ][0]
-        child_obj = graph.node_list[child[0]]
+        childrn = [
+            (idx, transfer_cost)
+            for idx, transfer_cost in enumerate(graph.adj_matrix[graph.id_to_idx[node]])
+            if transfer_cost is not None
+        ]
+        # graph is not sorted. find earlies start in childrn
+        min_node_end_time = np.inf
+        min_child_obj = None
+        for idx, transfer_cost in childrn:
+            child_obj = graph.node_list[idx]
+            if (child_obj.start_time - transfer_cost) < min_node_end_time:
+                min_node_end_time = child_obj.start_time - transfer_cost
+                min_child_obj = child_obj
 
-        node_obj.start_time = child_obj.start_time - child[1] - node_obj.time_cost
+        node_obj.start_time = min_node_end_time - node_obj.time_cost
         min_start_time = min(min_start_time, node_obj.start_time)
         node_obj.hardware_selection = "memory"
 
@@ -541,9 +548,7 @@ def _schedule_in_out(graph, available_hardware):
     print("...     ... graph i/o scheduled ...") if hw.DEBUG_PRINT else None
 
 
-def schdeule_nodes(
-    original_graph, subgraphs, available_hardware
-):  # TODO bert in-to-out issues
+def schdeule_nodes(original_graph, subgraphs, available_hardware):
     """
     merges subgraphs
     schedules in and out nodes
