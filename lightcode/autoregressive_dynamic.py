@@ -62,12 +62,9 @@ def generate(prompt, num_tokens=10):
 
 # Exporting to onnx
 def onnx_export_prefill(model):
-    # def prefill_step_for_export(input_ids):
-    #     outputs = model(input_ids, use_cache=True)
-    #     return outputs.logits, outputs.past_key_values
 
+    # 10 sequence length is arbatrary. will make dynamic anyway
     dummy_input_ids = torch.randint(0, model.config.vocab_size, (1, 10), dtype=torch.int64).to(device)
-
 
     key_val_names = []
     for layer in range(model.config.n_layer):
@@ -89,34 +86,49 @@ def onnx_export_prefill(model):
         opset_version=16
     )
 
-def onnx_export_decoder(model, dummy_last_token_id, dummy_past_key_values):
-    # def decoder_step_for_export(last_token_id, past_key_values):
-    #     outputs = model(last_token_id, past_key_values=past_key_values, use_cache=True)
-    #     return outputs.logits, outputs.past_key_values
+def onnx_export_decoder(model):
 
-    # dummy_last_token_id = torch.tensor([[50256]], device=device)  # Example token
+    class GPT2WithKVCache(torch.nn.Module):
+        def __init__(self, gpt2_model):
+            super(GPT2WithKVCache, self).__init__()
+            self.gpt2_model = gpt2_model
 
-    # past_key_val_names = []
-    # dummy_past_key_values = []
-    # for layer in range(model.config.n_layer):
-    #     past_key_val_names.append(f'past_k_{layer}')
-    #     past_key_val_names.append(f'past_v_{layer}')
-    #     dummy_past_key_values.append(torch.zeros(1, model.config.n_head, kv_sequence_lenght, model.config.n_embd // model.config.n_head).to(device))
-    #     dummy_past_key_values.append(torch.zeros(1, model.config.n_head, kv_sequence_lenght, model.config.n_embd // model.config.n_head).to(device))
+        def forward(self, input_ids, past_key_values):
+            output = self.gpt2_model(input_ids=input_ids, past_key_values=past_key_values)
+            return output.logits, output.past_key_values
+
+    model = GPT2LMHeadModel.from_pretrained('gpt2')
+    model.eval()
+
+    model_with_kv_cache = GPT2WithKVCache(model)
+
+    # 1 sequence length is arbatrary. will make dynamic anyway
+    dummy_last_token_id = torch.tensor([[50256]], device=device)  # Example token
+    dummy_past_key_values = [(torch.zeros(1, model.config.n_head, 1, model.config.n_embd // model.config.n_head), torch.zeros(1, model.config.n_head, 1, model.config.n_embd // model.config.n_head)) for _ in range(12)]
+
+
+    past_key_val_names = []
+    past_key_val_out_names = []
+    for layer in range(model.config.n_layer):
+        past_key_val_names.append(f'past_k_{layer}')
+        past_key_val_names.append(f'past_v_{layer}')
+        past_key_val_out_names.append(f'past_k_{layer}_out')
+        past_key_val_out_names.append(f'past_v_{layer}_out')
 
     torch.onnx.export(
-        model,  # The model to export
-        (dummy_last_token_id,) + tuple(dummy_past_key_values),
+        model_with_kv_cache,
+        (dummy_last_token_id, dummy_past_key_values),  # Pass input_ids and past_key_values as inputs
         "decoder_step.onnx",
-        input_names=["last_token_id", "dummy_past_key_values"],
-        output_names=["logits", "dummy_past_key_values"],
+        input_names=["input_ids"] + past_key_val_names,
+        output_names=["logits"] + past_key_val_out_names,
         dynamic_axes={
-            "input_ids": {0: "batch_size", 1: "sequence_length"},  # Make input dynamic
-            **{name: {0: "batch_size", 2: "sequence_length"} for name in past_key_val_names}  # Dynamic past key-values for each layer
+            "input_ids": {0: "batch_size", 1: "sequence_length"},
+            **{name: {0: "batch_size", 2: "sequence_length"} for name in past_key_val_names},
+            "logits": {0: "batch_size", 1: "sequence_length"},
+            **{name: {0: "batch_size", 2: "sequence_length"} for name in past_key_val_out_names},
         },
-        opset_version=16  # Adjust depending on your ONNX version
+        opset_version=16
     )
-
 
 def get_profile_prefill_decoder():
     session_options = ort.SessionOptions()
@@ -128,7 +140,6 @@ def get_profile_prefill_decoder():
     dummy_input = {
         input_name: np.random.randn(1, 10).astype(np.int64)
     }
-    print(dummy_input)
 
     outputs = session.run(None, dummy_input)
     profile_file = session.end_profiling()
@@ -150,9 +161,11 @@ def get_profile_prefill_decoder():
 def get_onnx_io(onnx_model):
     graph = onnx_model.graph
 
+    in_shape_names = []
     for input_tensor in graph.input:
         input_name = input_tensor.name
         input_shape = [dim.dim_value for dim in input_tensor.type.tensor_type.shape.dim]
+        in_shape_names.append(input_name)
         print(f'in - {input_name}: {input_shape}')
 
     for output_tensor in graph.output:
@@ -160,11 +173,13 @@ def get_onnx_io(onnx_model):
         output_shape = [dim.dim_value for dim in output_tensor.type.tensor_type.shape.dim]
         print(f'out - {output_name}: {output_shape}')
 
+    return in_shape_names
+
 def onnx_to_relay_prefill(input_shape, opt_level=0):
     onnx_model_path = 'prefill_step.onnx'
     onnx_model = onnx.load(onnx_model_path)
 
-    get_onnx_io(onnx_model)
+    # get_onnx_io(onnx_model)
 
     shape_dict = {"input_ids": input_shape}
 
@@ -188,12 +203,8 @@ def run_relay_prefill(lib, inputs):
     input_ids = tvm.nd.array(inputs["input_ids"].numpy())
     module.set_input("input_ids", input_ids)
 
-    # attention_mask = tvm.nd.array(inputs["attention_mask"].numpy())
-    # module.set_input("attention_mask", attention_mask)
-
     module.run()
 
-    # Get outputs
     outputs = []
     num_outputs = module.get_num_outputs()
     outputs = [module.get_output(i).numpy() for i in range(num_outputs)]
@@ -210,16 +221,15 @@ def onnx_to_relay_decoder(kv_cache_shape, opt_level=0):
     onnx_model_path = 'decoder_step.onnx'
     onnx_model = onnx.load(onnx_model_path)
 
-    get_onnx_io(onnx_model)
+    # get_onnx_io(onnx_model)
 
-    # past_key_val_names = []
-    # for layer in range(model.config.n_layer):
-    #     past_key_val_names.append(f'past_k_val_{layer}')
-    #     past_key_val_names.append(f'past_v_val_{layer}')
+    shape_dict = {}
+    for layer in range(model.config.n_layer):
+        shape_dict[f'past_k_{layer}'] = kv_cache_shape
+        shape_dict[f'past_v_{layer}'] = kv_cache_shape
 
-    # shape_dict
+    shape_dict['input_ids'] = (1,1)
 
-    return
     onnx.checker.check_model(onnx_model_path)
     mod, params = relay.frontend.from_onnx(
         onnx_model, shape_dict
@@ -231,36 +241,35 @@ def onnx_to_relay_decoder(kv_cache_shape, opt_level=0):
     with tvm.transform.PassContext(opt_level=opt_level, config=config):
         lib = relay.build(mod, target=target, params=params)
 
-def run_relay_decoder():
+    return lib
+
+def run_relay_decoder(lib, last_token_id, kv_cache):
     target = tvm.cpu()
     module = graph_executor.GraphModule(lib["default"](target))
 
-    # Set inputs
-    module.set_input("last_token_id", prev_gen_tok)
-    for index, name in enumerate(shape_dict.keys()):
-        module.set_input("name", kv_cache[index])
+    input_ids = tvm.nd.array(last_token_id)
+    module.set_input("input_ids", input_ids)
+    for layer in range(int(len(kv_cache)/2)):
+        past_k = tvm.nd.array(kv_cache[layer*2])
+        past_v = tvm.nd.array(kv_cache[layer*2 + 1])
+        module.set_input(f'past_k_{layer}', past_k)
+        module.set_input(f'past_v_{layer}', past_v)
 
 
-    # attention_mask = tvm.nd.array(inputs["attention_mask"].numpy())
-    # module.set_input("attention_mask", attention_mask)
-
-    # Run inference
     module.run()
 
     # Get outputs
     outputs = []
-    num_outputs = len(module.get_output(0).shape)  # Assumes the output is a tensor; modify as needed
-    outputs = [module.get_output(i).asnumpy() for i in range(num_outputs)]
-    for out in outputs:
-        print(out.shape)
+    num_outputs = module.get_num_outputs()
+    outputs = [module.get_output(i).numpy() for i in range(num_outputs)]
 
     logits = outputs[0]
 
     last_token_logits = logits[0, -1, :]
     next_token_id = np.argmax(last_token_logits)
 
-    print(f"{next_token_id}")
-    return next_token_id, outputs[0]
+    print(f"{input_ids} + {next_token_id}")
+    return next_token_id, outputs[1:]
 
 
 model_name = 'gpt2'
@@ -272,18 +281,30 @@ model.eval()
 device = torch.device("cpu")
 model = model.to(device)
 
-prompt = "The future of AI is"
-inputs = tokenize_input(prompt)
+# prompt = "The future of AI is going to be"
+# inputs = tokenize_input(prompt)
+# print(len(inputs.input_ids[0]))
 
-generated_text, last_token_id, past_key_values = generate(prompt, num_tokens=5)
 
 onnx_export_prefill(model)
-# onnx_export_decoder(model, last_token_id, past_key_values)
+onnx_export_decoder(model)
 
 # get_profile_prefill_decoder()
 
-lib = onnx_to_relay_prefill(inputs.input_ids.shape)
-next_token_id, kv_cache = run_relay_prefill(lib, inputs)
+sequence_len = 8
 
-# kv_cache_shape = None
-# lib = onnx_to_relay_decoder(kv_cache_shape)
+input_ids_shape = (1, sequence_len)
+
+kv_cache_shape = torch.zeros(1, model.config.n_head, sequence_len, model.config.n_embd // model.config.n_head).shape
+
+prefill_lib = onnx_to_relay_prefill(input_ids_shape)
+decoder_lib = onnx_to_relay_decoder(kv_cache_shape)
+
+prompt = "The future of AI is going to be"
+inputs = tokenize_input(prompt)
+
+
+generated_text, last_token_id, past_key_values = generate(prompt, num_tokens=5)
+
+next_token_id, kv_cache = run_relay_prefill(prefill_lib, inputs)
+next_token_id, kv_cache = run_relay_decoder(decoder_lib, next_token_id, kv_cache)
