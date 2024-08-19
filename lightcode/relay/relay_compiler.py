@@ -69,7 +69,7 @@ def transformer_torch_to_onnx(model_name, prompt):
     input_ids = inputs.input_ids
     model_onnx = model.eval()  # Change to eval mode
 
-    onnx_file_path = f"models/{model_name_save}.onnx"
+    onnx_file_path = f"../models/{model_name_save}.onnx"
     print(onnx_file_path)
 
     if os.path.exists(onnx_file_path):
@@ -117,7 +117,7 @@ def onnx_to_relay(
     input_ids = inputs.input_ids
 
     model_name_save = model_name.split("/", 1)[-1]
-    model_onnx_path = f"models/{model_name_save}.onnx"
+    model_onnx_path = f"../models/{model_name_save}.onnx"
     model_onnx = onnx.load(model_onnx_path)
 
     shape_dict = {"input_ids": input_ids.shape, "attention_mask": input_ids.shape}
@@ -169,17 +169,17 @@ def onnx_to_relay(
 
     if write:
         # Save the graph JSON to a file
-        graph_json_path = f"models/{model_name_save}_graph.json"
+        graph_json_path = f"../models/{model_name_save}_graph.json"
         with open(graph_json_path, "w") as f:
             f.write(lib.get_graph_json())
 
         # # Create the function library
         # lib.export_library(f"{model_name_save}_lib.so")
-        # lib.export_library(f"models/{model_name_save}_lib.tar")
+        # lib.export_library(f"../models/{model_name_save}_lib.tar")
 
         # # Creat paramater library
         # param_dict = lib.get_params()
-        # param_bytes_path = f"models/{model_name_save}_params.params"
+        # param_bytes_path = f"../models/{model_name_save}_params.params"
         # with open(param_bytes_path, "wb") as f:
         #     # f.write(relay.save_param_dict(param_dict).get_bytearray())
         #     f.write(relay.save_param_dict(param_dict))

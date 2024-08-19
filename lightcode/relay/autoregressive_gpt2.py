@@ -1,7 +1,7 @@
-'''Failing'''
-
 import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
 
 import onnx
 import onnxruntime as ort
@@ -13,20 +13,42 @@ from tvm.relay import op
 from tvm.contrib import graph_runtime
 from tvm.contrib import graph_executor
 
-# Pytorch
-def tokenize_input(prompt):
-    return tokenizer(prompt, return_tensors="pt")
+def get_kv_cache(model, sequence_len):
+    if hasattr(model.config, 'n_head'):  # GPT-2 case
+        num_heads = model.config.n_head
+        head_dim = model.config.n_embd // model.config.n_head
+    elif hasattr(model.config, 'num_attention_heads'):  # LLaMA case
+        num_heads = model.config.num_attention_heads
+        head_dim = model.config.hidden_size // model.config.num_attention_heads
+    else:
+        raise ValueError("Model config does not have expected attributes for attention heads or hidden size.")
 
-def prefill_step(prompt):
-    inputs = tokenize_input(prompt)
+    return torch.zeros(1, num_heads, sequence_len, head_dim)
+
+
+
+# Pytorch
+def tokenize_input(prompt, tokenizer):
+    return tokenizer(prompt, padding=True, return_tensors="pt")
+
+def prefill_step(prompt, tokenizer):
+    inputs = tokenize_input(prompt, tokenizer)
     input_ids = inputs["input_ids"].to(device)
 
     # Get model outputs, including past_key_values (key-value cache)
     with torch.no_grad():
         outputs = model(input_ids, use_cache=True)
 
-    logits = outputs.logits
-    past_key_values = outputs.past_key_values  # Cache for decoder step
+    # print(outputs[0].shape)
+    print(len(outputs[1]))
+    print(outputs[1][0][0].shape)
+
+    # gpt2
+    # logits = outputs.logits
+    # past_key_values = outputs.past_key_values
+    logits = outputs[0]
+    past_key_values = outputs[1]
+
 
     return logits, past_key_values
 
@@ -36,16 +58,20 @@ def decoder_step(last_token_id, past_key_values):
     with torch.no_grad():
         outputs = model(last_token_id, past_key_values=past_key_values, use_cache=True)
 
-    logits = outputs.logits
-    past_key_values = outputs.past_key_values  # Update cache
+
+    # gpt2
+    # logits = outputs.logits
+    # past_key_values = outputs.past_key_values
+    logits = outputs[0]
+    past_key_values = outputs[1]
 
     return logits, past_key_values
 
-def generate(prompt, num_tokens=10):
-    inputs = tokenize_input(prompt)
+def generate(prompt, tokenizer, num_tokens=10):
+    inputs = tokenize_input(prompt, tokenizer)
     input_ids = inputs["input_ids"].to(device)
 
-    logits, past_key_values = prefill_step(prompt)
+    logits, past_key_values = prefill_step(prompt, tokenizer)
 
     last_token_id = torch.argmax(logits[:, -1, :], dim=-1).item()
     generated_sequence = [last_token_id]
@@ -67,7 +93,8 @@ def onnx_export_prefill(model):
     dummy_input_ids = torch.randint(0, model.config.vocab_size, (1, 10), dtype=torch.int64).to(device)
 
     key_val_names = []
-    for layer in range(model.config.n_layer):
+    # for layer in range(model.config.n_layer):
+    for layer in range(model.config.num_hidden_layers):
         key_val_names.append(f'past_k_{layer}')
         key_val_names.append(f'past_v_{layer}')
 
@@ -76,7 +103,7 @@ def onnx_export_prefill(model):
     torch.onnx.export(
         model,
         (dummy_input_ids,),
-        "prefill_step.onnx",
+        "../models/gpt2_prefill.onnx",
         input_names=["input_ids"],
         output_names=["logits"] + key_val_names,
         dynamic_axes={
@@ -102,14 +129,16 @@ def onnx_export_decoder(model):
 
     model_with_kv_cache = GPT2WithKVCache(model)
 
-    # 1 sequence length is arbatrary. will make dynamic anyway
+    # 10 sequence length is arbatrary. will make dynamic anyway
     dummy_last_token_id = torch.tensor([[50256]], device=device)  # Example token
-    dummy_past_key_values = [(torch.zeros(1, model.config.n_head, 1, model.config.n_embd // model.config.n_head), torch.zeros(1, model.config.n_head, 1, model.config.n_embd // model.config.n_head)) for _ in range(12)]
+    # dummy_past_key_values = [(torch.zeros(1, model.config.n_head, 1, model.config.n_embd // model.config.n_head), torch.zeros(1, model.config.n_head, 1, model.config.n_embd // model.config.n_head)) for _ in range(model.config.n_layer)]
+    dummy_past_key_values = [(get_kv_cache(model, 10), get_kv_cache(model, 10)) for _ in range(model.config.n_layer)]
 
 
     past_key_val_names = []
     past_key_val_out_names = []
-    for layer in range(model.config.n_layer):
+    # for layer in range(model.config.n_layer):
+    for layer in range(model.config.num_hidden_layers):
         past_key_val_names.append(f'past_k_{layer}')
         past_key_val_names.append(f'past_v_{layer}')
         past_key_val_out_names.append(f'past_k_{layer}_out')
@@ -118,7 +147,7 @@ def onnx_export_decoder(model):
     torch.onnx.export(
         model_with_kv_cache,
         (dummy_last_token_id, dummy_past_key_values),  # Pass input_ids and past_key_values as inputs
-        "decoder_step.onnx",
+        "../models/gpt2_decoder.onnx",
         input_names=["input_ids"] + past_key_val_names,
         output_names=["logits"] + past_key_val_out_names,
         dynamic_axes={
@@ -134,7 +163,7 @@ def get_profile_prefill_decoder():
     session_options = ort.SessionOptions()
     session_options.enable_profiling = True  # Enable profiling here
 
-    session = ort.InferenceSession("prefill_step.onnx", sess_options=session_options)
+    session = ort.InferenceSession("../models/gpt2_prefill.onnx", sess_options=session_options)
 
     input_name = session.get_inputs()[0].name  # Get the input name
     dummy_input = {
@@ -144,7 +173,7 @@ def get_profile_prefill_decoder():
     outputs = session.run(None, dummy_input)
     profile_file = session.end_profiling()
 
-    session = ort.InferenceSession("decoder_step.onnx", sess_options=session_options)
+    session = ort.InferenceSession("../models/gpt2_decoder.onnx", sess_options=session_options)
 
     dummy_input_ids = np.array([[50256]], dtype=np.int64)  # dummy last token
     input_names = [input.name for input in session.get_inputs()]
@@ -176,7 +205,7 @@ def get_onnx_io(onnx_model):
     return in_shape_names
 
 def onnx_to_relay_prefill(input_shape, opt_level=0):
-    onnx_model_path = 'prefill_step.onnx'
+    onnx_model_path = '../models/gpt2_prefill.onnx'
     onnx_model = onnx.load(onnx_model_path)
 
     # get_onnx_io(onnx_model)
@@ -218,13 +247,14 @@ def run_relay_prefill(lib, inputs):
     return next_token_id, outputs[1:]
 
 def onnx_to_relay_decoder(kv_cache_shape, opt_level=0):
-    onnx_model_path = 'decoder_step.onnx'
+    onnx_model_path = '../models/gpt2_decoder.onnx'
     onnx_model = onnx.load(onnx_model_path)
 
     # get_onnx_io(onnx_model)
 
     shape_dict = {}
-    for layer in range(model.config.n_layer):
+    # for layer in range(model.config.n_layer):
+    for layer in range(model.config.num_hidden_layers):
         shape_dict[f'past_k_{layer}'] = kv_cache_shape
         shape_dict[f'past_v_{layer}'] = kv_cache_shape
 
@@ -273,38 +303,45 @@ def run_relay_decoder(lib, last_token_id, kv_cache):
 
 
 model_name = 'gpt2'
-
 tokenizer = GPT2Tokenizer.from_pretrained(model_name)
 model = GPT2LMHeadModel.from_pretrained(model_name)
+
+# model_name = "meta-llama/Llama-2-7b-hf"
+# tokenizer = AutoTokenizer.from_pretrained(model_name)
+# model = AutoModelForCausalLM.from_pretrained(model_name)
+
 model.eval()
+
+tokenizer.pad_token = tokenizer.eos_token
 
 device = torch.device("cpu")
 model = model.to(device)
 
-# prompt = "The future of AI is going to be"
-# inputs = tokenize_input(prompt)
-# print(len(inputs.input_ids[0]))
+prompt = "The future of AI is going to be"
+inputs = tokenize_input(prompt, tokenizer)
 
+input_ids = inputs["input_ids"]
+attention_mask = inputs["attention_mask"]
+
+generated_text, last_token_id, past_key_values = generate(prompt,tokenizer, num_tokens=5)
 
 onnx_export_prefill(model)
 onnx_export_decoder(model)
 
 # get_profile_prefill_decoder()
 
-sequence_len = 8
-
+sequence_len = len(input_ids[0])
 input_ids_shape = (1, sequence_len)
 
-kv_cache_shape = torch.zeros(1, model.config.n_head, sequence_len, model.config.n_embd // model.config.n_head).shape
+kv_cache_shape = get_kv_cache(model, sequence_len).shape
 
 prefill_lib = onnx_to_relay_prefill(input_ids_shape)
 decoder_lib = onnx_to_relay_decoder(kv_cache_shape)
 
 prompt = "The future of AI is going to be"
-inputs = tokenize_input(prompt)
+inputs = tokenize_input(prompt, tokenizer)
 
-
-generated_text, last_token_id, past_key_values = generate(prompt, num_tokens=5)
+generated_text, last_token_id, past_key_values = generate(prompt, tokenizer, num_tokens=5)
 
 next_token_id, kv_cache = run_relay_prefill(prefill_lib, inputs)
 next_token_id, kv_cache = run_relay_decoder(decoder_lib, next_token_id, kv_cache)
