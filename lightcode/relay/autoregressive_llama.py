@@ -1,5 +1,6 @@
 import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
+from transformers import LlamaForCausalLM, LlamaTokenizer
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
@@ -102,7 +103,7 @@ def onnx_export_prefill(model):
     torch.onnx.export(
         model,
         (dummy_input_ids,),
-        "../models/gpt2_prefill.onnx",
+        "../models/llama_prefill.onnx",
         input_names=["input_ids"],
         output_names=["logits"] + key_val_names,
         dynamic_axes={
@@ -115,28 +116,28 @@ def onnx_export_prefill(model):
 
 def onnx_export_decoder(model):
 
-    class GPT2WithKVCache(torch.nn.Module):
-        def __init__(self, gpt2_model):
-            super(GPT2WithKVCache, self).__init__()
-            self.gpt2_model = gpt2_model
+    class LlamaWithKVCache(torch.nn.Module):
+        def __init__(self, llama_model):
+            super(LlamaWithKVCache, self).__init__()
+            self.llama_model = llama_model
 
         def forward(self, input_ids, past_key_values):
-            output = self.gpt2_model(
+            output = self.llama_model(
                 input_ids=input_ids, past_key_values=past_key_values
             )
-            return output.logits, output.past_key_values
+            return output[0], output[1]
 
-    model = GPT2LMHeadModel.from_pretrained("gpt2")
-    model.eval()
+    # model = GPT2LMHeadModel.from_pretrained("gpt2")
+    # model.eval()
 
-    model_with_kv_cache = GPT2WithKVCache(model)
+    model_with_kv_cache = LlamaWithKVCache(model)
 
     # 10 sequence length is arbatrary. will make dynamic anyway
-    dummy_last_token_id = torch.tensor([[50256]], device=device)  # Example token
-    # dummy_past_key_values = [(torch.zeros(1, model.config.n_head, 1, model.config.n_embd // model.config.n_head), torch.zeros(1, model.config.n_head, 1, model.config.n_embd // model.config.n_head)) for _ in range(model.config.n_layer)]
+    dummy_last_token_id = torch.tensor([[50256]], device=device)
+    dummy_last_token_id = torch.tensor([[tokenizer.eos_token_id]], device=device) # use end-of-scentence token
     dummy_past_key_values = [
         (get_kv_cache(model, 10), get_kv_cache(model, 10))
-        for _ in range(model.config.n_layer)
+        for _ in range(model.config.num_hidden_layers)
     ]
 
     past_key_val_names = []
@@ -153,8 +154,8 @@ def onnx_export_decoder(model):
         (
             dummy_last_token_id,
             dummy_past_key_values,
-        ),  # Pass input_ids and past_key_values as inputs
-        "../models/gpt2_decoder.onnx",
+        ),
+        "../models/llama_decoder.onnx",
         input_names=["input_ids"] + past_key_val_names,
         output_names=["logits"] + past_key_val_out_names,
         dynamic_axes={
@@ -178,7 +179,7 @@ def get_profile_prefill_decoder():
     session_options.enable_profiling = True  # Enable profiling here
 
     session = ort.InferenceSession(
-        "../models/gpt2_prefill.onnx", sess_options=session_options
+        "../models/llama_prefill.onnx", sess_options=session_options
     )
 
     input_name = session.get_inputs()[0].name  # Get the input name
@@ -188,7 +189,7 @@ def get_profile_prefill_decoder():
     profile_file = session.end_profiling()
 
     session = ort.InferenceSession(
-        "../models/gpt2_decoder.onnx", sess_options=session_options
+        "../models/llama_decoder.onnx", sess_options=session_options
     )
 
     dummy_input_ids = np.array([[50256]], dtype=np.int64)  # dummy last token
@@ -224,7 +225,7 @@ def get_onnx_io(onnx_model):
 
 
 def onnx_to_relay_prefill(input_shape, opt_level=0):
-    onnx_model_path = "../models/gpt2_prefill.onnx"
+    onnx_model_path = "../models/llama_prefill.onnx"
     onnx_model = onnx.load(onnx_model_path)
 
     # get_onnx_io(onnx_model)
@@ -266,7 +267,7 @@ def run_relay_prefill(lib, inputs):
 
 
 def onnx_to_relay_decoder(kv_cache_shape, opt_level=0):
-    onnx_model_path = "../models/gpt2_decoder.onnx"
+    onnx_model_path = "../models/llama_decoder.onnx"
     onnx_model = onnx.load(onnx_model_path)
 
     # get_onnx_io(onnx_model)
@@ -320,8 +321,13 @@ def run_relay_decoder(lib, last_token_id, kv_cache):
 
 
 model_name = "meta-llama/Llama-2-7b-hf"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name)
+# tokenizer = AutoTokenizer.from_pretrained(model_name)
+# model = AutoModelForCausalLM.from_pretrained(model_name)
+
+tokenizer = LlamaTokenizer.from_pretrained(model_name)
+model = LlamaForCausalLM.from_pretrained(model_name)
+
+LlamaForCausalLM and LlamaTokenizer
 
 model.eval()
 
@@ -336,14 +342,18 @@ inputs = tokenize_input(prompt, tokenizer)
 input_ids = inputs["input_ids"]
 attention_mask = inputs["attention_mask"]
 
-generated_text, last_token_id, past_key_values = generate(
-    prompt, tokenizer, num_tokens=5
-)
+# generated_text, last_token_id, past_key_values = generate(
+#     prompt, tokenizer, num_tokens=5
+# )
 
 # onnx_export_prefill(model)
-# onnx_export_decoder(model)
+onnx_export_decoder(model)
 
 # # get_profile_prefill_decoder()
+onnx_model_path = "../models/llama_decoder.onnx"
+onnx_model = onnx.load(onnx_model_path)
+get_onnx_io(onnx_model)
+
 
 # sequence_len = len(input_ids[0])
 # input_ids_shape = (1, sequence_len)
