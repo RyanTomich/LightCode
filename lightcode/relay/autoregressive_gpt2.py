@@ -26,7 +26,6 @@ def get_kv_cache(model, sequence_len):
     return torch.zeros(1, num_heads, sequence_len, head_dim)
 
 
-
 # Pytorch
 def tokenize_input(prompt, tokenizer):
     return tokenizer(prompt, padding=True, return_tensors="pt")
@@ -39,16 +38,10 @@ def prefill_step(prompt, tokenizer):
     with torch.no_grad():
         outputs = model(input_ids, use_cache=True)
 
-    # print(outputs[0].shape)
-    print(len(outputs[1]))
-    print(outputs[1][0][0].shape)
+    print(f'prefill kv cache {outputs[1][0][0].shape}')
 
-    # gpt2
-    # logits = outputs.logits
-    # past_key_values = outputs.past_key_values
     logits = outputs[0]
     past_key_values = outputs[1]
-
 
     return logits, past_key_values
 
@@ -58,12 +51,10 @@ def decoder_step(last_token_id, past_key_values):
     with torch.no_grad():
         outputs = model(last_token_id, past_key_values=past_key_values, use_cache=True)
 
-
-    # gpt2
-    # logits = outputs.logits
-    # past_key_values = outputs.past_key_values
     logits = outputs[0]
     past_key_values = outputs[1]
+
+    print(f'decoder kv cache {past_key_values.shape}')
 
     return logits, past_key_values
 
