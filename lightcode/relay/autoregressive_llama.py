@@ -2,6 +2,7 @@ import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 from transformers import LlamaForCausalLM, LlamaTokenizer
 from transformers import AutoModelForCausalLM, AutoTokenizer
+import gc
 
 
 import onnx
@@ -134,7 +135,9 @@ def onnx_export_decoder(model):
 
     # 10 sequence length is arbatrary. will make dynamic anyway
     dummy_last_token_id = torch.tensor([[50256]], device=device)
-    dummy_last_token_id = torch.tensor([[tokenizer.eos_token_id]], device=device) # use end-of-scentence token
+    dummy_last_token_id = torch.tensor(
+        [[tokenizer.eos_token_id]], device=device
+    )  # use end-of-scentence token
     dummy_past_key_values = [
         (get_kv_cache(model, 10), get_kv_cache(model, 10))
         for _ in range(model.config.num_hidden_layers)
@@ -325,7 +328,7 @@ model_name = "meta-llama/Llama-2-7b-hf"
 # model = AutoModelForCausalLM.from_pretrained(model_name)
 
 tokenizer = LlamaTokenizer.from_pretrained(model_name)
-model = LlamaForCausalLM.from_pretrained(model_name)
+model = LlamaForCausalLM.from_pretrained(model_name, torchscript=True)
 
 LlamaForCausalLM and LlamaTokenizer
 
@@ -350,10 +353,6 @@ attention_mask = inputs["attention_mask"]
 onnx_export_decoder(model)
 
 # # get_profile_prefill_decoder()
-onnx_model_path = "../models/llama_decoder.onnx"
-onnx_model = onnx.load(onnx_model_path)
-get_onnx_io(onnx_model)
-
 
 # sequence_len = len(input_ids[0])
 # input_ids_shape = (1, sequence_len)

@@ -25,4 +25,5 @@ def print_shapes(relay_path):
 
     return shapes, types
 
+
 # relay_path = "/home/rjtomich/photonic_compiler/validation/models/gpt2_graph.json"

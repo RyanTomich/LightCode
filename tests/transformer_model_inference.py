@@ -1,9 +1,15 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer, pipeline
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    TextIteratorStreamer,
+    pipeline,
+)
 
 import cProfile
 import pstats
 import io
+
 
 def transformer_generate(model_name, prompt):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -14,15 +20,12 @@ def transformer_generate(model_name, prompt):
     print(input_tokens)
 
     output_tokens = model.generate(
-        input_tokens,
-        max_length=7,
-        do_sample=False,
-        temperature=1.0,
-        top_p=1.0
+        input_tokens, max_length=7, do_sample=False, temperature=1.0, top_p=1.0
     )
 
     print(output_tokens[0].tolist())
     return output_tokens[0].tolist()
+
 
 def print_cProfile(model_name, prompt):
     pr = cProfile.Profile()
@@ -32,7 +35,7 @@ def print_cProfile(model_name, prompt):
 
     # Print the profiling results
     s = io.StringIO()
-    ps = pstats.Stats(pr, stream=s).sort_stats('cumulative')
+    ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
     ps.print_stats()
     print(s.getvalue())
 
