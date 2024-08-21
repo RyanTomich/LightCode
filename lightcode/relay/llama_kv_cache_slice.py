@@ -1,8 +1,16 @@
 import torch
+import torch.nn.functional as F
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 from transformers import AutoModelForCausalLM, AutoTokenizer, Cache
 def tokenize_input(prompt, tokenizer, pad=False):
     return tokenizer(prompt, return_tensors="pt")
+
+def logits_to_token(logits):
+    do_sample = global_sample
+    if do_sample:
+        probs = F.softmax(logits[:, -1, :], dim=-1)
+        return torch.multinomial(probs, num_samples=1)
+    return torch.argmax(logits[:, -1, :], dim=-1)
 
 def inference_generate(model, tokenizer, prompt):
     inputs = tokenize_input(prompt, tokenizer)
@@ -10,8 +18,8 @@ def inference_generate(model, tokenizer, prompt):
 
     output_tokens = model.generate(
         **inputs,
-        max_length=pad_to,
-        do_sample=False,
+        max_length=pad_to + global_sliding,
+        do_sample=global_sample,
         temperature=None,
         top_p=None,
     )
@@ -55,12 +63,12 @@ def inference_prefill_decoder(model, tokenizer, prompt):
 
         logits, past_key_values = prefill_step(prompt, tokenizer)
 
-        last_token_id = torch.argmax(logits[:, -1, :], dim=-1).item()
+        last_token_id = logits_to_token(logits).item()
         generated_sequence = [last_token_id]
 
         for i in range(num_tokens):
             logits, past_key_values = decoder_step(last_token_id, past_key_values)
-            last_token_id = torch.argmax(logits[:, -1, :], dim=-1).item()
+            last_token_id = logits_to_token(logits).item()
             generated_sequence.append(last_token_id)
             # print(past_key_values[0][0].shape)
 
@@ -71,10 +79,10 @@ def inference_prefill_decoder(model, tokenizer, prompt):
 
     inputs_no_pad, pad_to = get_pad_to(prompt, tokenizer)
     sequence_len = len(inputs_no_pad.input_ids[0])
-    generate(prompt, tokenizer, num_tokens=pad_to - sequence_len-1)
+    generate(prompt, tokenizer, num_tokens=pad_to - sequence_len-1+global_sliding)
 
 def get_pad_to(prompt, tokenizer):
-    supported_sizes = [15, 20,30,40]
+    supported_sizes = [9, 20,30,40]
     inputs_no_pad = tokenizer(prompt, return_tensors="pt")
     sequence_len = len(inputs_no_pad.input_ids[0])
     pad_to = min(num for num in supported_sizes if num > sequence_len)
@@ -113,32 +121,45 @@ def inference_cache_slice(prompt, tokenizer):
         logits = outputs[0]
         kv_cache = outputs[1]
 
-        last_token_id = torch.argmax(logits[:, -1, :], dim=-1)
+        last_token_id = logits_to_token(logits)
 
         return last_token_id, kv_cache
 
-    def slice_kv_cache(kv_cache):
+    def slice_kv_cache(original_sequence_len, kv_cache):
         sliced_kv_cache = []
-        for layer in kv_cache:
-            k = layer[0]
-            v = layer[1]
-            sliced_k = k[:, :, 1:, :]
-            sliced_v = v[:, :, 1:, :]
-            sliced_kv_cache.append((sliced_k, sliced_v))
+        if sequence_len > pad_to:
+            index_to_remove = original_sequence_len
+            print(f'removing kv-cache index: {index_to_remove}')
+            for layer in kv_cache:
+                k = layer[0]
+                v = layer[1]
+                sliced_k = torch.cat((k[:, :, :index_to_remove, :], k[:, :, index_to_remove+1:, :]), dim=2)
+                sliced_v = torch.cat((v[:, :, :index_to_remove, :], v[:, :, index_to_remove+1:, :]), dim=2)
+                sliced_kv_cache.append((sliced_k, sliced_v))
+
+        else:
+            print(f'removing kv-cache index: 0')
+            for layer in kv_cache:
+                k = layer[0]
+                v = layer[1]
+                sliced_k = k[:, :, 1:, :]
+                sliced_v = v[:, :, 1:, :]
+                sliced_kv_cache.append((sliced_k, sliced_v))
+
 
         return tuple(sliced_kv_cache)
 
-    def decoder(last_token_id, kv_cache):
+    def decoder(original_sequence_len, last_token_id, kv_cache):
         last_token_id = torch.tensor([[last_token_id]], device=device)
 
         with torch.no_grad():
             outputs = model(last_token_id, past_key_values=kv_cache)
 
         logits = outputs[0]
-        last_token_id = torch.argmax(logits[:, -1, :], dim=-1)
+        last_token_id = logits_to_token(logits)
 
         kv_cache = outputs[1]
-        kv_cache = slice_kv_cache(kv_cache)
+        kv_cache = slice_kv_cache(original_sequence_len, kv_cache)
 
         # print(f'{kv_cache[0][0].shape} - {last_token_id.item()}')
 
@@ -148,6 +169,7 @@ def inference_cache_slice(prompt, tokenizer):
     input_ids_pad, input_mask_pad = pad(inputs_no_pad, pad_to, tokenizer)
 
     sequence_len = len(inputs_no_pad.input_ids[0])
+    original_sequence_len = len(inputs_no_pad.input_ids[0])
 
     generated = []
     last_token_id, kv_cache = prefill(input_ids_pad, input_mask_pad)
@@ -157,8 +179,8 @@ def inference_cache_slice(prompt, tokenizer):
     print(f"{sequence_len} / {pad_to}:  {kv_cache[0][0].shape}")
 
     # slicing decoder
-    for _ in range(pad_to - sequence_len):
-        last_token_id, kv_cache = decoder(last_token_id, kv_cache)
+    for _ in range(pad_to - sequence_len + global_sliding):
+        last_token_id, kv_cache = decoder(original_sequence_len, last_token_id, kv_cache)
 
         generated.append(last_token_id.item())
         sequence_len += 1
@@ -204,8 +226,12 @@ tokenizer.padding_side = "left"
 device = torch.device("cpu")
 model = model.to(device)
 
+global_sliding = 100
+global_sample = False
+
 prompt = "My favorite music is "
 # prompt = "The future of AI is "
+# prompt = "The first president of "
 print('inference_generate')
 inference_generate(model, tokenizer, prompt)
 print()
