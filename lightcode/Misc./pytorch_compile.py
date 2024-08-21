@@ -1,6 +1,6 @@
 import torch
 import torch.fx as fx
-import torch_tensorrt # requires GPU...
+import torch_tensorrt  # requires GPU...
 
 from typing import List
 
@@ -24,9 +24,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, Cache
 ##### Custom Backedn and graps #####
 
 
-
 ##### Transformers #####
-'''
+"""
 For GPU onlyw
 https://pytorch.org/TensorRT/tutorials/_rendered_examples/dynamo/torch_compile_transformers_example.html#torch-compile-transformer
 
@@ -37,12 +36,14 @@ fx Graph - Graph IR
 AOT Autograd
 @torch.compile() # eager - interperted like python
 @torch.compile(mode='graph') # - dynamic graphs with graph optimizations
-'''
+"""
+
 
 def custom_backend(gm: torch.fx.GraphModule, example_inputs: List[torch.Tensor]):
     print("custom backend called with FX graph:")
     gm.graph.print_tabular()
     return gm.forward
+
 
 model_name = "meta-llama/Llama-2-7b-hf"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -53,7 +54,7 @@ dummy_input = tokenizer.encode("Hello, world!", return_tensors="pt")
 enabled_precisions = {torch.float}
 debug = True
 workspace_size = 20 << 30
-min_block_size = 7 # Lower value allows more graph segmentation
+min_block_size = 7  # Lower value allows more graph segmentation
 torch_executed_ops = {}
 
 compilation_kwargs = {
