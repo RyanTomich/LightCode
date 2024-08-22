@@ -94,6 +94,12 @@ class Stack:
         )
         self.node_selection = None
 
+    def __iter__(self):
+        return iter(self.node_stack)
+
+    def __len__(self):
+        return len(self.node_stack)
+
     def _find_opp(self, func_name):
         """
         func_name(srt) - whole tvm function name
@@ -130,6 +136,12 @@ class Graph:
         self.residual = set()
         self.weight_variable = weight_variable
         self.adj_matrix = self._creat_adj_matrix()
+
+    def __iter__(self):
+        return iter(self.node_list)
+
+    def __len__(self):
+        return len(self.node_list)
 
     def _get_in(self):
         return {node.stack_id for node in self.node_list if not node.parents}
@@ -262,6 +274,12 @@ class StackGraph(Graph):
         super().__init__(self.stack_list, weight_variable)
         assert self.node_list == self.stack_list
         print("... Graph Made ...") if hw.DEBUG_PRINT else None
+
+    def __iter__(self):
+        return iter(self.stack_list)
+
+    def __len__(self):
+        return len(self.stack_list)
 
     def _create_stacks(self):
         ajusted_shapes = []

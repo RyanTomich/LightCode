@@ -716,8 +716,8 @@ def expand_nodes(flat_subgraphs):
 
 def threshold_nodes(stacked_graph):
     threshold_values = {}
-    for stack in stacked_graph.stack_list:
-        if len(stack.node_stack) == 1:
+    for stack in stacked_graph:
+        if len(stack) == 1:
             threshold_values[stack.stack_id] = None
 
     return threshold_values
