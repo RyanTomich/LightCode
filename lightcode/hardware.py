@@ -79,6 +79,17 @@ def recursive_contains_num(nested_list, func):
     return False
 
 
+def arithmatic_intensity_matmul(i, o):
+    num_dot_products = ten_elm(o[0])
+    length_dot_products = i[0][-1]
+    total_macs = num_dot_products * length_dot_products
+
+    total_num_in = ten_elm(i[0]) + ten_elm(i[1])
+    total_num_out = ten_elm(o[0])
+
+    return total_macs / (total_num_in + total_num_out + 1e-9)
+
+
 # endregion
 
 

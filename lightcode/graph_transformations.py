@@ -10,8 +10,7 @@ import stacked_graph as sg
 import testing as test
 import hardware as hw
 import photonic_algorithms as pa
-
-import matplotlib.pyplot as plt
+import data_collection as dc
 
 node_value_selection = {
     "time": lambda node: node.time_cost,
@@ -777,9 +776,20 @@ def _get_all_out_connection_cost(stacked_graph, moc_stack):
     return totals_per_node
 
 
-def _get_stack_threshold(stacked_graph, stack, weight_variable="time", plot=False):
+def _get_stack_threshold(
+    stacked_graph,
+    stack,
+    weight_variable="time",
+    plot_len_cost=False,
+    plot_arithmatic_intensity=False,
+):
     sequence_len = []
     algs = {}
+
+    arithmatic_intensity = []
+    electronic = []
+    photonic = []
+
     threshold = np.inf
     for moc_sequence_len in range(100):  # 4096 for llama
         moc_stack = sg.Stack(
@@ -808,63 +818,54 @@ def _get_stack_threshold(stacked_graph, stack, weight_variable="time", plot=Fals
                 min_cost = total_cost
                 min_cost_alg = node.algorithm
 
-        if plot:
-            sequence_len.append(moc_sequence_len)
-            total_connection_in_per_node = _get_all_in_connection_cost(
-                stacked_graph, moc_stack
-            )
-            total_connection_out_per_node = _get_all_out_connection_cost(
-                stacked_graph, moc_stack
-            )
-            for idx, node in enumerate(moc_stack):
-                total_cost = (
-                    node_value_selection[weight_variable](node)
-                    + total_connection_in_per_node[idx]
-                    + total_connection_out_per_node[idx]
-                )
-                algs.setdefault(node.algorithm, []).append(total_cost)
+            algs.setdefault(node.algorithm, []).append(total_cost)
+            if "phu" in node.algorithm:
+                photonic.append(total_cost)
+            else:
+                electronic.append(total_cost)
+
+        sequence_len.append(moc_sequence_len)
+        intensity = hw.arithmatic_intensity_matmul(
+            moc_stack.input_shapes, moc_stack.output_shapes
+        )
+        arithmatic_intensity.append(intensity)
 
         if "phu" in min_cost_alg:
             threshold = moc_sequence_len
-            if not plot:
+            print(intensity)
+            print(moc_stack)
+            # break
+            if not plot_len_cost and not plot_arithmatic_intensity:
                 break
 
-    if plot:
-        plt.figure()
-        for name, data in algs.items():
-            plt.plot(sequence_len, data, label=name)
+    if plot_len_cost:
+        dc.plot_len_cost(sequence_len, algs, weight_variable)
 
-        plt.xlabel("sequence len[tok]")
-
-        if weight_variable == "time":
-            plt.ylabel("time[s]")
-        elif weight_variable == "energy":
-            plt.ylabel("energy[j]")
-
-        plt.title(
-            f"{stack.opp} {_get_moc_size(stack.input_shapes, 0)} --> {_get_moc_size(stack.output_shapes, 0)}"
+    if plot_arithmatic_intensity:
+        dc.plot_arithmatic_intensity(
+            arithmatic_intensity, [p - e for p, e in zip(photonic, electronic)]
         )
-        plt.legend()
-
-        # plt.xscale('log')
-        # plt.yscale('log')
-
-        plt.savefig("line_graph.png", format="png")
-        plt.close()
 
     return threshold
 
 
 def threshold_nodes(stacked_graph, weight_variable="time"):
+    count = 0
     threshold_values = {}
     for stack in stacked_graph:
         if len(stack) == 1:
             threshold_values[stack.stack_id] = None
         else:
             threshold_sequence_len = _get_stack_threshold(
-                stacked_graph, stack, weight_variable=weight_variable, plot=True
+                stacked_graph,
+                stack,
+                weight_variable=weight_variable,
+                plot_len_cost=True,
+                plot_arithmatic_intensity=True,
             )
             threshold_values[stack.stack_id] = threshold_sequence_len
+            count += 1
+        if count == 3:
             exit()
 
     return threshold_values

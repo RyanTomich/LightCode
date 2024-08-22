@@ -1,4 +1,5 @@
 import hardware as hw
+import matplotlib.pyplot as plt
 
 
 def get_photonic(subgraphs):
@@ -217,3 +218,53 @@ def get_addmm(scheduled_flat_graph):
     #         print(f'{node.time_cost}')
 
     return dense_time, add_time
+
+
+def plot_arithmatic_intensity(arithmatic_intensity, difference):
+    plt.figure()
+    plt.plot(arithmatic_intensity, difference, label="p-e")
+
+    for idx, val in enumerate(difference):
+        if val < 0:
+            x_intercept = arithmatic_intensity[idx - 1]
+            break
+
+    plt.scatter(x_intercept, 0, color="blue")  # Mark the x-intercept with a red dot
+
+    plt.annotate(
+        f"intensity threshold = {round(x_intercept)}",
+        xy=(x_intercept, 0),
+        xytext=(5, 10),
+        textcoords="offset points",
+        ha="center",
+        color="black",
+    )
+
+    plt.xlabel("intensity[mac/float]")
+    plt.ylabel("photonic - electronic")
+
+    plt.legend()
+
+    plt.savefig("plot_intensity.png", format="png")
+    plt.close()
+
+
+def plot_len_cost(sequence_len, algs, weight_variable):
+    plt.figure()
+    for name, data in algs.items():
+        plt.plot(sequence_len, data, label=name)
+
+    plt.xlabel("sequence len[tok]")
+
+    if weight_variable == "time":
+        plt.ylabel("time[s]")
+    elif weight_variable == "energy":
+        plt.ylabel("energy[j]")
+
+    plt.legend()
+
+    # plt.xscale('log')
+    # plt.yscale('log')
+
+    plt.savefig("plot_len_cost.png", format="png")
+    plt.close()

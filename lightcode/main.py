@@ -82,8 +82,8 @@ def threshold_search(relay_path, optimization, available_hardware):
     raw_json = open_json(relay_path)
     graph = sg.StackGraph(raw_json=raw_json, weight_variable=WEIGHT_VARIABLE)
     node_thresholds = gt.threshold_nodes(graph, weight_variable=WEIGHT_VARIABLE)
-    for i, v in node_thresholds.items():
-        print(f"{i}: {v}")
+    # for i, v in node_thresholds.items():
+    #     print(f"{i}: {v}")
 
 
 if __name__ == "__main__":  # import guard
