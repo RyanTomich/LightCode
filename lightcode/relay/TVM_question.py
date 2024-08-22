@@ -56,7 +56,6 @@ torch.onnx.export(
 )
 
 
-
 onnx_model = onnx.load(onnx_model_path)
 onnx.checker.check_model(onnx_model_path)
 
@@ -64,20 +63,18 @@ onnx.checker.check_model(onnx_model_path)
 shape_dict = {"input_ids": (1, tvm.te.var("sequence_length"))}  # Dynamic shape
 
 
+mod, params = relay.frontend.from_onnx(onnx_model, shape_dict)
 
-mod, params = relay.frontend.from_onnx(
-    onnx_model, shape_dict
-)
-
-config = {"relay.FuseOps.max_depth": 0,}
+config = {
+    "relay.FuseOps.max_depth": 0,
+}
 
 target = tvm.target.Target("llvm", host="llvm")
 with tvm.transform.PassContext(opt_level=0, config=config):
     lib = relay.build(mod, target=target, params=params)
 
 
-
-with open(f'{model_name}_graph.json', "w") as f:
+with open(f"{model_name}_graph.json", "w") as f:
     f.write(lib.get_graph_json())
 
 lib.export_library(f"{model_name}_lib.tar")

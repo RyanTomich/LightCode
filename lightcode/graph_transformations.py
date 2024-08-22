@@ -11,14 +11,8 @@ import testing as test
 import hardware as hw
 import photonic_algorithms as pa
 
+
 # region graph_partition
-
-node_value_selection = {
-    "time": lambda node: node.time_cost,
-    "energy": lambda node: node.energy_cost,
-}
-
-
 def graph_partition(graph, weight_variable="time"):
     """Finds the Articulation Vertices and partitions the large graph into subgraphs
     StackedGraph objects. Inclusive on both ends of range.
@@ -85,9 +79,7 @@ def graph_partition(graph, weight_variable="time"):
 # endregion
 
 
-# region select_nodes
-
-
+# region selection
 def _extract_stacks(path):
     """returns set of stacks included in the path
 
@@ -274,6 +266,11 @@ def _rolling_dijkstra(graph, weight_variable):
     graph to optimize
     return list of (stack_idx, node_idx)
     """
+    node_value_selection = {
+        "time": lambda node: node.time_cost,
+        "energy": lambda node: node.energy_cost,
+    }
+
     aggreement_stacks = _make_aggreement_list(graph)
     all_nodes = {i for i, v in enumerate(graph.stack_list) if v.opp != "memory"}
 
@@ -305,10 +302,9 @@ def _rolling_dijkstra(graph, weight_variable):
     raise ValueError(
         "These operations are not computable with this hardware. Change hardware or algorithms for the hardware."
     )
-    return None
 
 
-def select_nodes(subgraphs, weight_variable):
+def pathfinding_node_selection(subgraphs, weight_variable):
     """apply roling_dijkstra to each subgraph.
 
     Args:
@@ -347,7 +343,7 @@ def select_nodes(subgraphs, weight_variable):
 # endregion
 
 
-# region schedule_nodes
+# region Schedule
 def _hardware_synchronize(available_hardware):
     """brings all hardware times up to the max"""
     max_value = max(
@@ -612,7 +608,7 @@ def schdeule_nodes(original_graph, subgraphs, available_hardware):
 # endregion
 
 
-# region expand_nodes
+# region Expansion
 def _group_dot_products(m1, m2):
     """given to tensors, returns dotproducts grouped by most common vector used
 
@@ -713,3 +709,15 @@ def expand_nodes(flat_subgraphs):
 
 
 # endregion
+
+
+# regon Thresholding
+
+
+def threshold_nodes(stacked_graph):
+    threshold_values = {}
+    for stack in stacked_graph.stack_list:
+        if len(stack.node_stack) == 1:
+            threshold_values[stack.stack_id] = None
+
+    return threshold_values

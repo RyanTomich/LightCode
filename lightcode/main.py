@@ -17,23 +17,27 @@ import data_collection as dc
 import code_generation as cg
 
 
-def forward(
+def open_json(path):
+    with open(relay_path, encoding="utf-8") as json_file:
+        return json.load(json_file)
+
+
+def graph_search(
     relay_path,
     optimization,
     available_hardware,
     profiles=True,
-    get_step_times=True,
     data_collection=False,
 ):
-    with open(relay_path, encoding="utf-8") as json_file:
-        raw_json = json.load(json_file)  # returns json file as dict
-        # print("... Json loaded ...")
+    raw_json = open_json(relay_path)
 
     WEIGHT_VARIABLE = optimization
 
     graph = sg.StackGraph(raw_json=raw_json, weight_variable=WEIGHT_VARIABLE)
     stacked_subgraphs = list(gt.graph_partition(graph, weight_variable=WEIGHT_VARIABLE))
-    flat_subgraphs = gt.select_nodes(stacked_subgraphs, weight_variable=WEIGHT_VARIABLE)
+    flat_subgraphs = gt.pathfinding_node_selection(
+        stacked_subgraphs, weight_variable=WEIGHT_VARIABLE
+    )
     expanded_flat_subgraphs = gt.expand_nodes(flat_subgraphs)
     scheduled_flat_graph, end_time, break_points = gt.schdeule_nodes(
         graph, expanded_flat_subgraphs, available_hardware
@@ -73,119 +77,12 @@ def forward(
         dense_time, add_time = dc.get_addmm(scheduled_flat_graph)
 
 
-def debug_forward(
-    relay_path,
-    optimization,
-    available_hardware,
-    profiles=True,
-    get_step_times=True,
-    config=None,
-):
-
-    # progress bar
-    def mark_time():
-        if get_step_times is True:
-            times.append(time.time())
-        progress_bar.update(1)
-
-    times = []
-
-    ops = [
-        "open",
-        "oringal_graph",
-        "stacked_subgraphs",
-        "flat_subgraphs",
-        "expanded_flat_subgraphs",
-        "schdeule_nodes",
-        "create_schedule_data",
-        "schedule_validate",
-        "get_memory_profile",
-        "get_energy_profile",
-    ]
-
-    if not profiles:
-        ops.remove("get_memory_profile")
-        ops.remove("get_energy_profile")
-
-    progress_bar = tqdm(total=len(ops), desc="Progress", unit="operation")
-
-    # Calculation
-    mark_time()
-    with open(relay_path, encoding="utf-8") as json_file:
-        raw_json = json.load(json_file)  # returns json file as dict
-        # print("... Json loaded ...")
-    mark_time()
-
+def threshold_search(relay_path, optimization, available_hardware):
     WEIGHT_VARIABLE = optimization
-
+    raw_json = open_json(relay_path)
     graph = sg.StackGraph(raw_json=raw_json, weight_variable=WEIGHT_VARIABLE)
-
-    mark_time()
-    stacked_subgraphs = list(gt.graph_partition(graph))
-    mark_time()
-    flat_subgraphs = gt.select_nodes(
-        stacked_subgraphs, weight_variable=WEIGHT_VARIABLE, config=config
-    )
-    mark_time()
-    expanded_flat_subgraphs = gt.expand_nodes(flat_subgraphs)
-    mark_time()
-    scheduled_flat_graph, end_time, break_points = gt.schdeule_nodes(
-        graph, expanded_flat_subgraphs, available_hardware
-    )
-    mark_time()
-
-    # print(scheduled_flat_graph.get_node_obj(13))
-
-    schedule_df = scheduled_flat_graph.create_schedule_data(write=True)
-
-    # schedule_df['difference'] = schedule_df['end'] - schedule_df['start']
-    # print(schedule_df.loc[schedule_df['difference'].idxmax()])
-
-    mark_time()
-    stagnent_time = test.schedule_validate(schedule_df)
-    mark_time()
-
-    print("---------- INFO ----------")
-    print(f"{WEIGHT_VARIABLE=}")
-    dc.get_photonic(flat_subgraphs)
-    print(
-        dc.get_all_algorithms(flat_subgraphs).symmetric_difference(
-            dc.get_all_algorithms(scheduled_flat_graph)
-        )
-    )
-
-    print(f"Makespan: {end_time} s")
-    print(f"Number of Nodes: {len(scheduled_flat_graph.node_list)}")
-
-    if profiles:
-        dram, delta_dram, sram, delta_sram = dc.get_memory_profile(scheduled_flat_graph)
-        print(f"Net DRAM: {dram[-1][1]} bits")
-        print(f"Net SRAM: {sram[-1][1]} bits")
-        mark_time()
-
-        energy_data, delta_energy, total_energy = dc.get_energy_profile(
-            scheduled_flat_graph
-        )
-        print(f"Total Energy Consumption: {total_energy} pico-joules")
-
-        mark_time()
-        print(
-            f"time_distrabution {dc.get_time_profile(scheduled_flat_graph)} compute seconds "
-        )
-        mark_time()
-
-    if get_step_times:
-        time_taken = {}
-        print(len(times))
-        print(len(ops))
-        assert len(times) - 1 == len(ops)
-        for i in range(len(ops)):
-            time_taken[ops[i]] = times[i + 1] - times[i]
-        print(time_taken)
-
-    print("---------- ---- ----------")
-
-    dense_time, add_time = dc.get_addmm(scheduled_flat_graph)
+    node_thresholds = gt.threshold_nodes(graph)
+    print(len(node_thresholds))
 
 
 if __name__ == "__main__":  # import guard
@@ -194,8 +91,8 @@ if __name__ == "__main__":  # import guard
     # relay_path = "models/Llama-2-7b-hf_graph.json"
     relay_path = "models/opt0_Llama-2-7b-hf_graph.json"
 
-    # optimization = "time"
-    optimization = "energy"
+    optimization = "time"
+    # optimization = "energy"
 
     # cpu_freq = psutil.cpu_freq()
     # print(cpu_freq)
@@ -214,11 +111,16 @@ if __name__ == "__main__":  # import guard
     # available_hardware = hw.initilize_hardware([hw.CPU(14792899408, 1)])
     available_hardware = hw.initilize_hardware(hardware)
 
-    forward(
+    # graph_search(
+    #     relay_path,
+    #     optimization,
+    #     available_hardware,
+    #     profiles=True,
+    #     data_collection=True,
+    # )
+
+    threshold_search(
         relay_path,
         optimization,
         available_hardware,
-        profiles=True,
-        get_step_times=False,
-        data_collection=True,
     )
