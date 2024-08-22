@@ -74,6 +74,7 @@ class Stack:
         self.input_shapes = input_shapes
         self.output_shapes = output_shapes
         self.tvm_func = tvm_func
+        self.relay_node = relay_node if relay_node else None
         self.opp = (
             opp
             if relay_node is None
@@ -194,7 +195,7 @@ class Graph:
 
         return (total_num, total_num * hw.BITS_PER_NUM)
 
-    def _make_connection(self, start_node_idx, end_node_idx) -> int:
+    def make_connection(self, start_node_idx, end_node_idx) -> int:
         """makes connection cost for flat graphs
 
         Args:
@@ -224,7 +225,7 @@ class Graph:
         for dep in dependancys:
             start_stack_idx = self.id_to_idx[dep[0]]
             end_stack_idx = self.id_to_idx[dep[1]]
-            connection = self._make_connection(*dep)
+            connection = self.make_connection(*dep)
             adj_matrix[start_stack_idx][end_stack_idx] = connection
         return adj_matrix
 
@@ -320,7 +321,7 @@ class StackGraph(Graph):
 
     # adj_matrix
 
-    def _make_connection(self, start_node_idx, end_node_idx) -> np.array:
+    def make_connection(self, start_node_idx, end_node_idx) -> np.array:
         """makes connection cost for flat graphs
 
         Args:

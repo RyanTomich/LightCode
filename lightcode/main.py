@@ -81,8 +81,9 @@ def threshold_search(relay_path, optimization, available_hardware):
     WEIGHT_VARIABLE = optimization
     raw_json = open_json(relay_path)
     graph = sg.StackGraph(raw_json=raw_json, weight_variable=WEIGHT_VARIABLE)
-    node_thresholds = gt.threshold_nodes(graph)
-    print(len(node_thresholds))
+    node_thresholds = gt.threshold_nodes(graph, weight_variable=WEIGHT_VARIABLE)
+    for i, v in node_thresholds.items():
+        print(f"{i}: {v}")
 
 
 if __name__ == "__main__":  # import guard
@@ -91,8 +92,8 @@ if __name__ == "__main__":  # import guard
     # relay_path = "models/Llama-2-7b-hf_graph.json"
     relay_path = "models/opt0_Llama-2-7b-hf_graph.json"
 
-    optimization = "time"
-    # optimization = "energy"
+    # optimization = "time"
+    optimization = "energy"
 
     # cpu_freq = psutil.cpu_freq()
     # print(cpu_freq)
@@ -106,7 +107,7 @@ if __name__ == "__main__":  # import guard
     hw.Hardware._hardware_reset()
     # hardware.append(hw.CPU(CPU_MAX_CLOCK, 1))
     hardware.append(hw.CPU(CPU_AVERAGE_CLOCK, 1))
-    # hardware.append(hw.PHU(PHU_MIN_CLOCK, 1, 20))
+    hardware.append(hw.PHU(PHU_MIN_CLOCK, 1, 20))
 
     # available_hardware = hw.initilize_hardware([hw.CPU(14792899408, 1)])
     available_hardware = hw.initilize_hardware(hardware)

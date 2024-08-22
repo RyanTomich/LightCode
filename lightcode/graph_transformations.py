@@ -11,6 +11,13 @@ import testing as test
 import hardware as hw
 import photonic_algorithms as pa
 
+import matplotlib.pyplot as plt
+
+node_value_selection = {
+    "time": lambda node: node.time_cost,
+    "energy": lambda node: node.energy_cost,
+}
+
 
 # region graph_partition
 def graph_partition(graph, weight_variable="time"):
@@ -266,11 +273,6 @@ def _rolling_dijkstra(graph, weight_variable):
     graph to optimize
     return list of (stack_idx, node_idx)
     """
-    node_value_selection = {
-        "time": lambda node: node.time_cost,
-        "energy": lambda node: node.energy_cost,
-    }
-
     aggreement_stacks = _make_aggreement_list(graph)
     all_nodes = {i for i, v in enumerate(graph.stack_list) if v.opp != "memory"}
 
@@ -714,10 +716,107 @@ def expand_nodes(flat_subgraphs):
 # regon Thresholding
 
 
-def threshold_nodes(stacked_graph):
+def _get_moc_size(shape, moc_sequence_len):
+    def recursive_replace(search, find, replacement):
+        new_search = []
+        for idx, val in enumerate(search):
+            if not isinstance(val, int):
+                new_search.append(recursive_replace(val, find, replacement))
+            elif val == find:
+                new_search.append(replacement)
+            else:
+                new_search.append(val)
+        return new_search
+
+    # 6 will need to changes based on how dynamic graphs look
+    return recursive_replace(shape, 6, moc_sequence_len)
+
+
+def _get_all_connection_cost(stacked_graph, moc_stack):
+    dependancys = [(inp, moc_stack.stack_id) for inp in moc_stack.parents]
+    all_parent_connections = list(
+        stacked_graph.make_connection(*dep) for dep in dependancys
+    )
+    totals_per_node = []
+    for parrent_connection in all_parent_connections:
+        cur_stack_node_sum = sum(
+            edge for edge in parrent_connection[0]
+        )  # for single node parent stacks
+        totals_per_node.append(cur_stack_node_sum)
+    return totals_per_node
+
+
+def _get_stack_threshold(stacked_graph, stack, weight_variable="time", plot=False):
+    sequence_len = []
+    algs = {}
+    for moc_sequence_len in range(4096):  # 4096 for llama
+        moc_stack = sg.Stack(
+            stack.stack_id,
+            stack.parents,
+            _get_moc_size(stack.input_shapes, moc_sequence_len),
+            _get_moc_size(stack.output_shapes, moc_sequence_len),
+            stack.tvm_func,
+            relay_node=stack.relay_node,
+        )
+        min_cost = np.inf
+        min_cost_alg = None
+        total_connection_per_node = _get_all_connection_cost(stacked_graph, moc_stack)
+        for idx, node in enumerate(moc_stack):
+            total_cost = (
+                node_value_selection[weight_variable](node)
+                + total_connection_per_node[idx]
+            )
+            if total_cost < min_cost:
+                min_cost = total_cost
+                min_cost_alg = node.algorithm
+
+        if plot:
+            sequence_len.append(moc_sequence_len)
+            total_connection_per_node = _get_all_connection_cost(
+                stacked_graph, moc_stack
+            )
+            for idx, node in enumerate(moc_stack):
+                total_cost = (
+                    node_value_selection[weight_variable](node)
+                    + total_connection_per_node[idx]
+                )
+                algs.setdefault(node.algorithm, []).append(total_cost)
+
+        if "phu" in min_cost_alg:
+            threshold = moc_sequence_len
+            break
+
+    if plot:
+        plt.figure()
+        for name, data in algs.items():
+            plt.plot(sequence_len, data, label=name)
+
+        plt.xlabel("sequence len[tok]")
+        plt.ylabel("time[s]")
+        plt.title(
+            f"{stack.opp} {_get_moc_size(stack.input_shapes, 0)} --> {_get_moc_size(stack.output_shapes, 0)}"
+        )
+        plt.legend()
+
+        # plt.xscale('log')
+        # plt.yscale('log')
+
+        plt.savefig("line_graph.png", format="png")
+        plt.close()
+
+    return threshold if threshold else np.inf
+
+
+def threshold_nodes(stacked_graph, weight_variable="time"):
     threshold_values = {}
     for stack in stacked_graph:
         if len(stack) == 1:
             threshold_values[stack.stack_id] = None
+        else:
+            threshold_sequence_len = _get_stack_threshold(
+                stacked_graph, stack, weight_variable=weight_variable, plot=False
+            )
+            threshold_values[stack.stack_id] = threshold_sequence_len
+            exit()
 
     return threshold_values
