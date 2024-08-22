@@ -1,6 +1,18 @@
-# Kernel Launching and Dynamic Kernel Selection for LLM’s with Relay
+Kernel Launching and Dynamic Kernel Selection for LLMs with Relay
 
-Hi! I am working on using TVM to compile LLMs. Here, the prompt is specified in the compilation stage. The PyTorch and ONNX models allow for dynamic shapes, but the resulting TVM graph appears to be for the static shape of the prompt. Here is my workflow:
+Hi! I am working on using TVM to compile LLMs. Here, the prompt is specified in the compilation stage. The PyTorch and ONNX models allow for dynamic shapes, but the resulting TVM graph appears to be for the static shape of the prompt.
+
+
+1) Once I have the Relay graph, the library.tar, and params, I want to replace some of the operations (like dense) with my own and do custom scheduling. Is it possible to take these nodes and **run/kernel launch each node individually**? How can I take control of the kernel launch?
+
+2) LLMs have unknown input lengths during prefill and changing kv-cache during the decoder phase. Is there a way for TVM to handle the dynamic shapes? Alternatively, does TVM support compiling multiple kernels and doing **dynamic kernel selection** at runtime depending on input size.
+
+3) Trying to do everything in AOT-compilation, does TVM support **creating kernels for a range or sizes** (during dense or matmul, for example)?
+
+        * Note, I have heard about TVM Unity and Relax that are currently under development, but I have not seen how to use those tools in this way.
+
+
+Here is my workflow:
 
 Imports
 ```
@@ -79,15 +91,5 @@ with open(f"{model_name}_params.params", "wb") as f:
     f.write(relay.save_param_dict(param_dict))
 ```
 
-
-I was wondering some things:
-
-1) Once I have the Relay graph, the library.tar, and params, I want to replace some of the operations (like dense) with my own and do custom scheduling. Is it possible to take these nodes and **run/kernel launch each node individually**? How can I take control of the kernel launch?
-
-2) LLMs have unknown input lengths during prefill and changing kv-cache during the decoder phase. Is there a way for TVM to handle the dynamic shapes? Alternatively, does TVM support compiling multiple kernels and doing **dynamic kernel selection** at runtime depending on input size.
-
-3) Trying to do everything in AOT-compilation, does TVM support **creating kernels for a range or sizes** (during dense or matmul, for example)?
-
-        * Note, I have heard about TVM Unity and Relax that are currently under development, but I have not seen how to use those tools in this way.
 
 Thanks for any guidance on how to solve these problems or improve the workflow.
