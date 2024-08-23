@@ -35,7 +35,6 @@ def group_validate(graph, groups):
                 if parent not in included:
                     print(stack)
                     assert False
-    return True
 
 
 def node_list_complete(node_list):

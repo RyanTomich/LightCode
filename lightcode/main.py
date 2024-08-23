@@ -12,7 +12,7 @@ import psutil
 import hardware as hw
 import graph_transformations as gt
 import stacked_graph as sg
-import testing as test
+import input_validation as validate
 import data_collection as dc
 import code_generation as cg
 
@@ -44,7 +44,7 @@ def graph_search(
     )
     schedule_df = scheduled_flat_graph.create_schedule_data()
 
-    test.graph_validate(scheduled_flat_graph)
+    validate.graph_validate(scheduled_flat_graph)
     cg.code_gen(scheduled_flat_graph)
 
     print("---------- INFO ----------")

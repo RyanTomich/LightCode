@@ -7,7 +7,7 @@ import heapq
 import numpy as np
 
 import stacked_graph as sg
-import testing as test
+import input_validation as validate
 import hardware as hw
 import photonic_algorithms as pa
 import data_collection as dc
@@ -34,7 +34,7 @@ def graph_partition(graph, weight_variable="time"):
             graph.residual.add(stack.stack_id)
 
     groups = list(graph.get_node_groups(asap=False))
-    assert test.group_validate(graph, groups)
+    validate.group_validate(graph, groups)
     subgraphs = []
 
     for group in groups:
@@ -501,7 +501,7 @@ def _add_in_out(original_graph, node_list):
         new_node.parents = new_parents
         node_list.append(new_node)
 
-    test.node_list_complete(node_list)
+    validate.node_list_complete(node_list)
 
 
 def _schedule_in_out(graph, available_hardware):
@@ -575,7 +575,7 @@ def schdeule_nodes(original_graph, subgraphs, available_hardware):
         )
 
     _add_residual(original_graph, full_node_list)
-    test.merge_i_o(full_node_list, original_graph)
+    validate.merge_i_o(full_node_list, original_graph)
     _add_in_out(original_graph, full_node_list)
 
     graph = sg.Graph(full_node_list, weight_variable="time")

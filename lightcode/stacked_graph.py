@@ -5,7 +5,7 @@ Graph types
 import numpy as np
 import pandas as pd
 import hardware as hw
-import testing as test
+import input_validation as validate
 
 
 class Node:
@@ -136,7 +136,7 @@ class Stack:
 
 class Graph:
     def __init__(self, node_list, weight_variable):
-        test.node_list_complete(node_list)
+        validate.node_list_complete(node_list)
         self.node_list = node_list
         self.id_to_idx = {v.stack_id: i for i, v in enumerate(self.node_list)}
         self.in_nodes = self._get_in()
@@ -244,7 +244,7 @@ class Graph:
         returns metadata about the schedule.
         Graph must have been scheduled first.
         """
-        test.graph_state_scheduled(self)
+        validate.graph_state_scheduled(self)
 
         data = {
             "hardware": [],
