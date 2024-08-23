@@ -791,7 +791,7 @@ def _get_stack_threshold(
     photonic = []
 
     threshold = np.inf
-    for moc_sequence_len in range(100):  # 4096 for llama
+    for moc_sequence_len in range(4096):  # 4096 for llama
         moc_stack = sg.Stack(
             stack.stack_id,
             stack.parents,
@@ -832,9 +832,6 @@ def _get_stack_threshold(
 
         if "phu" in min_cost_alg:
             threshold = moc_sequence_len
-            print(intensity)
-            print(moc_stack)
-            # break
             if not plot_len_cost and not plot_arithmatic_intensity:
                 break
 
@@ -860,12 +857,8 @@ def threshold_nodes(stacked_graph, weight_variable="time"):
                 stacked_graph,
                 stack,
                 weight_variable=weight_variable,
-                plot_len_cost=True,
-                plot_arithmatic_intensity=True,
+                plot_len_cost=False,
+                plot_arithmatic_intensity=False,
             )
             threshold_values[stack.stack_id] = threshold_sequence_len
-            count += 1
-        if count == 3:
-            exit()
-
     return threshold_values

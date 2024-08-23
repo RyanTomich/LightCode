@@ -82,8 +82,10 @@ def threshold_search(relay_path, optimization, available_hardware):
     raw_json = open_json(relay_path)
     graph = sg.StackGraph(raw_json=raw_json, weight_variable=WEIGHT_VARIABLE)
     node_thresholds = gt.threshold_nodes(graph, weight_variable=WEIGHT_VARIABLE)
-    # for i, v in node_thresholds.items():
-    #     print(f"{i}: {v}")
+    thresholds = set()
+    for i, v in node_thresholds.items():
+        thresholds.add(v)
+    print(thresholds)
 
 
 if __name__ == "__main__":  # import guard
@@ -112,13 +114,13 @@ if __name__ == "__main__":  # import guard
     # available_hardware = hw.initilize_hardware([hw.CPU(14792899408, 1)])
     available_hardware = hw.initilize_hardware(hardware)
 
-    # graph_search(
-    #     relay_path,
-    #     optimization,
-    #     available_hardware,
-    #     profiles=True,
-    #     data_collection=True,
-    # )
+    graph_search(
+        relay_path,
+        optimization,
+        available_hardware,
+        profiles=True,
+        data_collection=True,
+    )
 
     threshold_search(
         relay_path,

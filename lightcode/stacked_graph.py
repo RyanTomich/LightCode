@@ -9,7 +9,7 @@ import testing as test
 
 
 class Node:
-    """represent one algorithm for one opperation. Created by Stack objects"""
+    """represent one posiable algorithm for one opperation"""
 
     id_counter = 0
 
@@ -33,18 +33,20 @@ class Node:
 
     def __str__(self):
         return (
-            f"{self.algorithm}\n"
-            + f"{self.stack_id}\n"
-            + f"{self.parents}\n"
-            + f"{self.input_shapes}\n"
-            + f"{self.output_shapes}\n"
-            + f"{self.time_cost}\n"
-            + f"{self.energy_cost}\n"
-            + f"{self.hardware_selection}\n"
-            + f"{self.start_time}\n"
+            f"{self.algorithm=}\n"
+            + f"{self.node_id=}\n"
+            + f"{self.stack=}\n"
+            + f"{self.stack_id=}\n"
+            + f"{self.parents=}\n"
+            + f"{self.input_shapes=}\n"
+            + f"{self.output_shapes=}\n"
+            + f"{self.time_cost=}\n"
+            + f"{self.energy_cost=}\n"
+            + f"{self.hardware_selection=}\n"
+            + f"{self.start_time=}\n"
         )
 
-    def get_algo_info(self, info_type):  # TODO let node carry around algorithm object
+    def get_algo_info(self, info_type):
         algorithm_obj = hw.Hardware.algs[self.algorithm]
         info = {"opp": algorithm_obj.opp, "hardware": algorithm_obj.hardware}
         return info[info_type]
@@ -56,7 +58,7 @@ class Node:
 
 
 class Stack:
-    """Represents a gruop of Node objects with common in_out functionality."""
+    """Represents a gruop of Node objects with common i/o"""
 
     def __init__(
         self,
@@ -65,8 +67,8 @@ class Stack:
         input_shapes,
         output_shapes,
         tvm_func,
-        opp=None,
         relay_node=None,
+        opp=None,
         node_stack=None,
     ):
         self.stack_id = stack_id
@@ -74,6 +76,11 @@ class Stack:
         self.input_shapes = input_shapes
         self.output_shapes = output_shapes
         self.tvm_func = tvm_func
+
+        assert (bool(relay_node)) ^ (
+            bool(opp) & (node_stack is not None)
+        ), "Exactly one of `relay_node` or both `opp` and `node_stack` must be provided."
+
         self.relay_node = relay_node if relay_node else None
         self.opp = (
             opp
@@ -169,7 +176,7 @@ class Graph:
         not_none = [i for i, v in enumerate(row) if v is not None]
         return not_none
 
-    def get_distrabution(self):
+    def get_opp_distrabution(self):
         distrabution = {}
         for stack in self.stack_list:
             distrabution.setdefault(stack.opp, 0)
@@ -184,16 +191,19 @@ class Graph:
         Calculates the total number of bits passed out of a node
         returns [num, bits]
         """
-        total_num = 0
+        total_numbers = 0
         if direction == "out":
-            total_num += hw.ten_elm(
-                node.output_shapes[0]
-            )  # assuming uniform outputs(splits are all the same) # TODO fix this assumption...
+            total_numbers += hw.ten_elm(
+                node.output_shapes[0]  # TODO assuming uniform split
+            )
         else:
             for shape in node.input_shapes:
-                total_num += hw.ten_elm(shape)
+                total_numbers += hw.ten_elm(shape)
 
-        return (total_num, total_num * hw.BITS_PER_NUM)
+        return (
+            total_numbers,
+            total_numbers * hw.BITS_PER_NUM,
+        )  # TODO assuming all numbers are the same precision
 
     def make_connection(self, start_node_idx, end_node_idx) -> int:
         """makes connection cost for flat graphs
@@ -215,11 +225,9 @@ class Graph:
         """
         Creates an adjancy matrix of the dependencies using stack_list
         """
-        # (1, 2, num, bits) where 1's output are 2's inputs
         dependancys = [
             (inp, node.stack_id) for node in self.node_list for inp in node.parents
         ]
-
         num_nodes = len(self.node_list)
         adj_matrix = np.empty((num_nodes, num_nodes), dtype=object)  # block matrix
         for dep in dependancys:
@@ -236,6 +244,8 @@ class Graph:
         returns metadata about the schedule.
         Graph must have been scheduled first.
         """
+        test.graph_state_scheduled(self)
+
         data = {
             "hardware": [],
             "start": [],
@@ -243,11 +253,10 @@ class Graph:
             "label": [],  # Labels for the blocks
         }
 
-        # for stack in graph.stack_list[16:-6]:
-        for node in self.node_list[1:]:
+        for node in self.node_list:
             data["hardware"].append(node.hardware_selection)
             data["start"].append(node.start_time)
-            data["end"].append(node.start_time + node.time_cost)
+            data["end"].append(node.start_time + node.time_cost)  # jsut compute time
             data["label"].append(node.stack_id)
 
         schedule_data = pd.DataFrame(data).sort_values(by="start")
@@ -259,7 +268,6 @@ class Graph:
                         f"{row['label']} --- {row['hardware']} ({row['start']})\n"
                     )
 
-        print("... Schedule Data written ...") if hw.DEBUG_PRINT else None
         return schedule_data
 
     def get_sorted_nodes(self):
@@ -274,7 +282,6 @@ class StackGraph(Graph):
         self.stack_list = stack_list if not raw_json else self._create_stacks()
         super().__init__(self.stack_list, weight_variable)
         assert self.node_list == self.stack_list
-        print("... Graph Made ...") if hw.DEBUG_PRINT else None
 
     def __iter__(self):
         return iter(self.stack_list)
@@ -290,16 +297,19 @@ class StackGraph(Graph):
                 self.raw_json["attrs"]["shape"][1][index + split_shift]
             )
             if "split" in node["name"]:
-                split_shift += 2
+                split_shift += 2  # TODO assumes split nodes are tri-split
 
         stacks = []
         for index, node in enumerate(self.raw_json["nodes"]):
             num_output = int(node["attrs"]["num_outputs"]) if "attrs" in node else 1
             parents = {shape_idx[0] for shape_idx in node["inputs"]}
             input_shapes = [
-                ajusted_shapes[shape_idx[0]] for shape_idx in node["inputs"]
+                ajusted_shapes[shape_idx[0]]
+                for shape_idx in node[
+                    "inputs"
+                ]  # TODO only considers parent node, not parent node output index
             ]
-            output_shapes = [ajusted_shapes[index] for i in range(num_output)]
+            output_shapes = [ajusted_shapes[index] for _ in range(num_output)]
 
             tvm_func = None
             if "attrs" in node:
@@ -322,7 +332,7 @@ class StackGraph(Graph):
     # adj_matrix
 
     def make_connection(self, start_node_idx, end_node_idx) -> np.array:
-        """makes connection cost for flat graphs
+        """makes connection cost for stacked graphs
 
         Args:
             start_node (int): start node id
@@ -338,8 +348,12 @@ class StackGraph(Graph):
         start_node_list = start_stack.node_stack
         end_node_list = end_stack.node_stack
 
-        assert isinstance(start_node_list, list), f"was {type(start_stack)}"
-        assert isinstance(end_node_list, list), f"was {type(start_stack)}"
+        assert isinstance(
+            start_node_list, list
+        ), f"start_stack.node_stack was not list, it was {type(start_stack)}"
+        assert isinstance(
+            end_node_list, list
+        ), f"end_stack.node_stack was not list, it was {type(start_stack)}"
 
         connection_matrix = np.empty((len(start_node_list), len(end_node_list)))
         for start_idx, start_node in enumerate(start_node_list):
@@ -353,7 +367,7 @@ class StackGraph(Graph):
 
     # Node_selection
 
-    def _kahn_topo_sort_working(self, transpose=False):
+    def _layered_topo_sort(self, transpose=False):
         """
         Reversed True = ALAP (as late as posiable)
         Reversed False = ASAP (as soon as posiable)
@@ -445,11 +459,10 @@ class StackGraph(Graph):
             list: list of stack_id's
         """
         if asap:
-            order, layers_list, _ = self._kahn_topo_sort_working(transpose=False)
-        # ALAP
-        else:
-            order, _, _ = self._kahn_topo_sort_working(transpose=True)
-            _, layers_list, _ = self._kahn_topo_sort_working(transpose=False)
+            order, layers_list, _ = self._layered_topo_sort(transpose=False)
+        else:  # ALAP
+            order, _, _ = self._layered_topo_sort(transpose=True)
+            _, layers_list, _ = self._layered_topo_sort(transpose=False)
 
         cuts = self._get_cuts(layers_list)
 

@@ -168,6 +168,45 @@ def initilize_hardware(hardware):
     return available_hardware
 
 
+def get_edge_val(graph, start_node, end_node, weight_variable):
+    """Calculates cost between hardware. Accounts for trips to and from SRAM
+
+    Args:
+        graph (Graph):
+        start_node (Node): ending node of directed edge
+        end_node (Node): ending node of directed edge
+        weight_variable (str): time or energy
+
+    Returns:
+        int: total cost in seconds or jules (depending on weight_variable)
+    """
+
+    num_transfer, bit_transfer = graph._bit_transfer(start_node)
+
+    start_hw = type(start_node.get_algo_info("hardware"))
+    end_hw = type(end_node.get_algo_info("hardware"))
+    hw_connection = tuple((start_hw, end_hw))
+
+    # one way connection
+    if any(i in [Start, SRAM] for i in hw_connection):
+        return Hardware.intercon[hw_connection].get_transfer_cost(
+            weight_variable, num_transfer, bit_transfer
+        )
+
+    # must go through SRAM
+    else:
+        to_sram = Hardware.intercon[(hw_connection[0], SRAM)].get_transfer_cost(
+            weight_variable, num_transfer, bit_transfer
+        )
+        from_sram = Hardware.intercon[(SRAM, hw_connection[1])].get_transfer_cost(
+            weight_variable,
+            num_transfer,
+            bit_transfer,
+        )
+
+        return to_sram + from_sram
+
+
 class HardwareConnection:
     def __init__(self, time_cost_per_transfer, energy_cost_per_number):
         """create functions for cost
@@ -437,42 +476,3 @@ class Start(Hardware):
 
 
 # endregion
-
-
-def get_edge_val(graph, start_node, end_node, weight_variable):
-    """Calculates cost between hardware. Accounts for trips to and from SRAM
-
-    Args:
-        graph (Graph):
-        start_node (Node): ending node of directed edge
-        end_node (Node): ending node of directed edge
-        weight_variable (str): time or energy
-
-    Returns:
-        int: total cost in seconds or jules (depending on weight_variable)
-    """
-
-    num_transfer, bit_transfer = graph._bit_transfer(start_node)
-
-    start_hw = type(start_node.get_algo_info("hardware"))
-    end_hw = type(end_node.get_algo_info("hardware"))
-    hw_connection = tuple((start_hw, end_hw))
-
-    # one way connection
-    if any(i in [Start, SRAM] for i in hw_connection):
-        return Hardware.intercon[hw_connection].get_transfer_cost(
-            weight_variable, num_transfer, bit_transfer
-        )
-
-    # must go through SRAM
-    else:
-        to_sram = Hardware.intercon[(hw_connection[0], SRAM)].get_transfer_cost(
-            weight_variable, num_transfer, bit_transfer
-        )
-        from_sram = Hardware.intercon[(SRAM, hw_connection[1])].get_transfer_cost(
-            weight_variable,
-            num_transfer,
-            bit_transfer,
-        )
-
-        return to_sram + from_sram

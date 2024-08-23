@@ -3,6 +3,19 @@ Testing and validation
 """
 
 
+# Checking Graph state
+def graph_state_scheduled(graph):
+    # graph must be flat
+    assert hasattr(graph, "stack_list") == False, "Graph is stacked!, should be flat"
+    for node in graph.node_list:
+        assert (
+            node.start_time != None
+        ), f"node {node.node_id} does not have a start time!"
+
+
+# Other
+
+
 def group_validate(graph, groups):
     """ensures every node parents are included in the group.
     exception to load and store nodes, which can have odd dependancies
