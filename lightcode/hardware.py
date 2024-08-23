@@ -37,18 +37,6 @@ def energy_per_cycle_func_gen(funcion):
     return lambda i, o: funcion(i, o) * JOULE_PER_CYCLE
 
 
-# def all_elm_energy(i, o):
-#     return ten_elm(o[0]) * JOULE_PER_CYCLE
-
-
-# def all_elm_const_energy(c):
-#     return lambda i, o: ten_elm(o[0]) * c * JOULE_PER_CYCLE
-
-
-# def constnat_energy(c):
-#     return lambda i, o: c * JOULE_PER_CYCLE
-
-
 def elm_const(matrix, const=1):
     return ten_elm(matrix) * const
 
@@ -103,11 +91,11 @@ def initilize_hardware(hardware):
         hw (list): list of hardware instances of the system
     """
 
-    CPU_MAX_CLOCK = 6 * 10**9  # 60**9, 6 Ghz
+    # MEMORY_CLOCK = 6 * 10**9  # 60**9, 6 Ghz
 
-    sram = SRAM(CPU_MAX_CLOCK)
-    hbm = HBM(CPU_MAX_CLOCK)
-    start = Start(CPU_MAX_CLOCK)
+    sram = SRAM(MEMORY_CLOCK)
+    hbm = HBM(MEMORY_CLOCK)
+    start = Start(MEMORY_CLOCK)
 
     available_cores = {hw: hw.num_cores for hw in hardware}
     available_cores[sram] = 1
@@ -255,7 +243,7 @@ class PHU(Hardware):
     def __init__(self, clock_speed, num_cores, num_multiplex):
         self.num_numtiplex = num_multiplex
         self.num_cores = num_cores
-        self.mac_energy = 0.04 * PICO_JOULE
+        self.mac_energy = PHU_MAC
         self.algs = {
             "task_para_matmul_phu": HardwareAlgorithm(
                 "matmul",
@@ -323,7 +311,7 @@ class PHU(Hardware):
 class CPU(Hardware):
     def __init__(self, clock_speed, num_cores):
         self.num_cores = num_cores
-        self.mac_energy = 0.1 * PICO_JOULE
+        self.mac_energy = CPU_MAC
         self.algs = {
             "add": HardwareAlgorithm(
                 "add",
@@ -435,6 +423,8 @@ class CPU(Hardware):
 
         time = (m * num_add) + b
         return time * self.clock_speed
+        """liner fit gives time. Multiply by clock_speed so it gets cancled by
+            clock_period durring HardwareAlgorithm.time_cost"""
 
     def _cpu_matmul_cycles(self, i, o):
         num_dot_products = ten_elm(o[0])
@@ -452,6 +442,8 @@ class CPU(Hardware):
 
         time = (m * num_mac) + b
         return time * self.clock_speed
+        """liner fit gives time. Multiply by clock_speed so it gets cancled by
+            clock_period durring HardwareAlgorithm.time_cost"""
 
     def _cpu_matmul_energy(self, i, o):
         num_dot_products = ten_elm(o[0])
@@ -461,7 +453,7 @@ class CPU(Hardware):
 
 class GPU(Hardware):
     def __init__(self, clock_speed):
-        self.mac_energy = 0.1 * PICO_JOULE
+        self.mac_energy = GPU_MAC
         self.algs = {}
         super().__init__(clock_speed)
 
@@ -473,14 +465,13 @@ class HBM(Hardware):
                 "memory",
                 {
                     self: (
-                        lambda i, o: 0,
+                        # sum(ten_elm(a) for a in o) * BITS_PER_NUM / MEMORY_TRANSFER_WIDTH
+                        lambda i, o: 0,  # 0 if assuming model is preloaded to HMB
                         lambda i, o: sum(ten_elm(a) for a in o) * DRAM_READ
                         + sum(ten_elm(a) for a in o) * HBM_WRITE,
                     )
                 },
             ),
-            # 0 if assuming model is preloaded to HMB
-            # sum(ten_elm(a) for a in o) * BITS_PER_NUM / MEMORY_TRANSFER_WIDTH
         }
         super().__init__(clock_speed)
 
@@ -513,9 +504,10 @@ NODE_COUNT = 0
 
 # region constants and helpers
 MEMORY_TRANSFER_WIDTH = 32  # bits per cycle
-DAC_ADC_DELAY = 1 * 10**-8  # 10 nano-seconds
+DAC_ADC_DELAY = 10 * 10**-9  # 10 nano-seconds
 
-BITS_PER_NUM = 32  # TODO
+BITS_PER_NUM = 32  # TODO fix to be opp dependant based on the model
+MEMORY_CLOCK = 6 * 10**9
 
 # Power
 PICO_JOULE = 10**-12
@@ -530,14 +522,10 @@ SRAM_WRITE = 12 * PICO_JOULE
 LOCAL_READ = 1 * PICO_JOULE
 LOCAL_WRITE = 1 * PICO_JOULE
 PHU_MAC = 0.04 * PICO_JOULE
+CPU_MAC = 0.1 * PICO_JOULE
+GPU_MAC = 0.1 * PICO_JOULE
 
 DAC_POWER = 3.18 * PICO_JOULE
 ADC_POWER = 1.6 * PICO_JOULE
-
-# Validated Constants
-CPU_MAC_MULTIPLIER_AVG = 0.3978
-CPU_MAC_MULTIPLIER_LARGE = 1.7130
-CPU_MAC_MULTIPLIER_LARGE = 1.18
-CPU_MAC_1D_MULTIPLIER = 2.3654
 
 # endregion

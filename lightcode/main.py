@@ -103,7 +103,7 @@ if __name__ == "__main__":  # import guard
 
     CPU_MAX_CLOCK = 5.0875 * 10**9  # 5.0875 e+9 5Ghz
     CPU_AVERAGE_CLOCK = 3.208 * 10**9  # 60**9, 6
-    PHU_MIN_CLOCK = 10 * 10**9  # 100**9, 10 Ghz
+    PHU_MIN_CLOCK = 9.7 * 10**9  # 100**9, 10 Ghz
 
     hardware = []
     hw.Hardware._hardware_reset()
