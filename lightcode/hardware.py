@@ -1,38 +1,5 @@
 import math
 
-DEBUG_PRINT = False
-NODE_COUNT = 0
-
-
-# region constants and helpers
-MEMORY_TRANSFER_WIDTH = 32  # bits per cycle
-DAC_ADC_DELAY = 1 * 10**-8  # 10 nano-seconds
-
-BITS_PER_NUM = 32  # TODO
-
-# Power
-PICO_JOULE = 10**-12
-JOULE_PER_CYCLE = 1 * PICO_JOULE
-
-DRAM_READ = 160 * PICO_JOULE
-DRAM_WRITE = 160 * PICO_JOULE
-HBM_READ = 40 * PICO_JOULE
-HBM_WRITE = 40 * PICO_JOULE
-SRAM_READ = 12 * PICO_JOULE
-SRAM_WRITE = 12 * PICO_JOULE
-LOCAL_READ = 1 * PICO_JOULE
-LOCAL_WRITE = 1 * PICO_JOULE
-PHU_MAC = 0.04 * PICO_JOULE
-
-DAC_POWER = 3.18 * PICO_JOULE
-ADC_POWER = 1.6 * PICO_JOULE
-
-# Validated Constants
-CPU_MAC_MULTIPLIER_AVG = 0.3978
-CPU_MAC_MULTIPLIER_LARGE = 1.7130
-CPU_MAC_MULTIPLIER_LARGE = 1.18
-CPU_MAC_1D_MULTIPLIER = 2.3654
-
 
 # time and dimentions
 def ten_elm(tensor_shape):
@@ -49,6 +16,7 @@ def ten_elm(tensor_shape):
     return ans
 
 
+# i, o functions
 def all_elm(i, o):
     return ten_elm(o[0])
 
@@ -57,12 +25,28 @@ def all_elm_const(c):
     return lambda i, o: ten_elm(o[0]) * c
 
 
+def constnat(c):
+    return lambda i, o: c
+
+
 def standard_energy(i, o):
     return JOULE_PER_CYCLE
 
 
-def constnat(c):
-    return lambda i, o: c
+def energy_per_cycle_func_gen(funcion):
+    return lambda i, o: funcion(i, o) * JOULE_PER_CYCLE
+
+
+# def all_elm_energy(i, o):
+#     return ten_elm(o[0]) * JOULE_PER_CYCLE
+
+
+# def all_elm_const_energy(c):
+#     return lambda i, o: ten_elm(o[0]) * c * JOULE_PER_CYCLE
+
+
+# def constnat_energy(c):
+#     return lambda i, o: c * JOULE_PER_CYCLE
 
 
 def elm_const(matrix, const=1):
@@ -342,36 +326,59 @@ class CPU(Hardware):
         self.mac_energy = 0.1 * PICO_JOULE
         self.algs = {
             "add": HardwareAlgorithm(
-                "add", {self: (self._add_cycles, standard_energy)}
+                "add",
+                {self: (self._add_cycles, energy_per_cycle_func_gen(self._add_cycles))},
             ),
             "subtract": HardwareAlgorithm(
-                "subtract", {self: (all_elm, standard_energy)}
+                "subtract", {self: (all_elm, energy_per_cycle_func_gen(all_elm))}
             ),
             "multiply": HardwareAlgorithm(
-                "multiply", {self: (all_elm, standard_energy)}
+                "multiply", {self: (all_elm, energy_per_cycle_func_gen(all_elm))}
             ),
-            "divide": HardwareAlgorithm("divide", {self: (all_elm, standard_energy)}),
-            "sqrt": HardwareAlgorithm("sqrt", {self: (all_elm, standard_energy)}),
-            "rsqrt": HardwareAlgorithm("rsqrt", {self: (all_elm, standard_energy)}),
+            "divide": HardwareAlgorithm(
+                "divide", {self: (all_elm, energy_per_cycle_func_gen(all_elm))}
+            ),
+            "sqrt": HardwareAlgorithm(
+                "sqrt", {self: (all_elm, energy_per_cycle_func_gen(all_elm))}
+            ),
+            "rsqrt": HardwareAlgorithm(
+                "rsqrt", {self: (all_elm, energy_per_cycle_func_gen(all_elm))}
+            ),
             "relu": HardwareAlgorithm(
-                "relu", {self: (all_elm_const(2), standard_energy)}
+                "relu",
+                {self: (all_elm_const(2), energy_per_cycle_func_gen(all_elm_const(2)))},
             ),
             "tanh": HardwareAlgorithm(
-                "tanh", {self: (all_elm_const(4), standard_energy)}
+                "tanh",
+                {self: (all_elm_const(4), energy_per_cycle_func_gen(all_elm_const(4)))},
             ),
-            "power": HardwareAlgorithm("power", {self: (all_elm, standard_energy)}),
+            "power": HardwareAlgorithm(
+                "power", {self: (all_elm, energy_per_cycle_func_gen(all_elm))}
+            ),
             "transpose": HardwareAlgorithm(
-                "transpose", {self: (all_elm, standard_energy)}
+                "transpose", {self: (all_elm, energy_per_cycle_func_gen(all_elm))}
             ),
-            "nop": HardwareAlgorithm("nop", {self: (constnat(1), standard_energy)}),
-            "less": HardwareAlgorithm("less", {self: (constnat(1), standard_energy)}),
-            "take": HardwareAlgorithm("take", {self: (constnat(1), standard_energy)}),
+            "nop": HardwareAlgorithm(
+                "nop", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
+            ),
+            "less": HardwareAlgorithm(
+                "less", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
+            ),
+            "take": HardwareAlgorithm(
+                "take", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
+            ),
             "mean": HardwareAlgorithm(
                 "mean",
-                {self: (lambda i, o: (i[0][-1] + 1) * i[0][-2], standard_energy)},
+                {
+                    self: (
+                        self._mean_cycles,
+                        energy_per_cycle_func_gen(self._add_cycles),
+                    )
+                },
             ),
             "softmax": HardwareAlgorithm(
-                "softmax", {self: (all_elm_const(6), standard_energy)}
+                "softmax",
+                {self: (all_elm_const(6), energy_per_cycle_func_gen(all_elm_const(6)))},
             ),
             "matmul": HardwareAlgorithm(
                 "matmul", {self: (self._cpu_matmul_cycles, self._cpu_matmul_energy)}
@@ -382,24 +389,43 @@ class CPU(Hardware):
             "pack": HardwareAlgorithm(
                 "pack", {self: (self._cpu_matmul_cycles, self._cpu_matmul_energy)}
             ),
-            "where": HardwareAlgorithm("where", {self: (constnat(1), standard_energy)}),
-            "erf": HardwareAlgorithm("erf", {self: (constnat(1), standard_energy)}),
-            "slice": HardwareAlgorithm("slice", {self: (constnat(1), standard_energy)}),
+            "where": HardwareAlgorithm(
+                "where", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
+            ),
+            "erf": HardwareAlgorithm(
+                "erf", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
+            ),
+            "slice": HardwareAlgorithm(
+                "slice", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
+            ),
             "negative": HardwareAlgorithm(
-                "negative", {self: (all_elm, standard_energy)}
+                "negative", {self: (all_elm, energy_per_cycle_func_gen(all_elm))}
             ),
             "concatenate": HardwareAlgorithm(
-                "concatenate", {self: (constnat(1), standard_energy)}
+                "concatenate",
+                {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))},
             ),
             "sigmoid": HardwareAlgorithm(
-                "sigmoid", {self: (all_elm_const(4), standard_energy)}
+                "sigmoid",
+                {self: (all_elm_const(4), energy_per_cycle_func_gen(all_elm_const(4)))},
             ),
-            "cast": HardwareAlgorithm("cast", {self: (all_elm, standard_energy)}),
-            "equal": HardwareAlgorithm("equal", {self: (all_elm, standard_energy)}),
-            "to": HardwareAlgorithm("to", {self: (all_elm, standard_energy)}),
-            "nd": HardwareAlgorithm("nd", {self: (all_elm, standard_energy)}),
+            "cast": HardwareAlgorithm(
+                "cast", {self: (all_elm, energy_per_cycle_func_gen(all_elm))}
+            ),
+            "equal": HardwareAlgorithm(
+                "equal", {self: (all_elm, energy_per_cycle_func_gen(all_elm))}
+            ),
+            "to": HardwareAlgorithm(
+                "to", {self: (all_elm, energy_per_cycle_func_gen(all_elm))}
+            ),
+            "nd": HardwareAlgorithm(
+                "nd", {self: (all_elm, energy_per_cycle_func_gen(all_elm))}
+            ),
         }
         super().__init__(clock_speed)
+
+    def _mean_cycles(self, i, o):
+        return (i[0][-1] + 1) * i[0][-2]
 
     def _add_cycles(self, i, o):
         m = 5.728114536194012e-11
@@ -462,7 +488,9 @@ class HBM(Hardware):
 class SRAM(Hardware):
     def __init__(self, clock_speed):
         self.algs = {
-            "split": HardwareAlgorithm("split", {self: (constnat(1), standard_energy)})
+            "split": HardwareAlgorithm(
+                "split", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
+            )
         }
         super().__init__(clock_speed)
 
@@ -470,9 +498,46 @@ class SRAM(Hardware):
 class Start(Hardware):
     def __init__(self, clock_speed):
         self.algs = {
-            "start": HardwareAlgorithm("start", {self: (constnat(1), standard_energy)}),
+            "start": HardwareAlgorithm(
+                "start", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
+            ),
         }
         super().__init__(clock_speed)
 
+
+# endregion
+
+# region constants
+
+NODE_COUNT = 0
+
+# region constants and helpers
+MEMORY_TRANSFER_WIDTH = 32  # bits per cycle
+DAC_ADC_DELAY = 1 * 10**-8  # 10 nano-seconds
+
+BITS_PER_NUM = 32  # TODO
+
+# Power
+PICO_JOULE = 10**-12
+JOULE_PER_CYCLE = 1 * PICO_JOULE
+
+DRAM_READ = 160 * PICO_JOULE
+DRAM_WRITE = 160 * PICO_JOULE
+HBM_READ = 40 * PICO_JOULE
+HBM_WRITE = 40 * PICO_JOULE
+SRAM_READ = 12 * PICO_JOULE
+SRAM_WRITE = 12 * PICO_JOULE
+LOCAL_READ = 1 * PICO_JOULE
+LOCAL_WRITE = 1 * PICO_JOULE
+PHU_MAC = 0.04 * PICO_JOULE
+
+DAC_POWER = 3.18 * PICO_JOULE
+ADC_POWER = 1.6 * PICO_JOULE
+
+# Validated Constants
+CPU_MAC_MULTIPLIER_AVG = 0.3978
+CPU_MAC_MULTIPLIER_LARGE = 1.7130
+CPU_MAC_MULTIPLIER_LARGE = 1.18
+CPU_MAC_1D_MULTIPLIER = 2.3654
 
 # endregion

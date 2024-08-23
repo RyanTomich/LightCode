@@ -119,7 +119,6 @@ def get_memory_profile(graph):
 
     # print(f"{dram_total=}")
     # print(f"{sram_total=}")
-    print("... Memory profile made ...") if hw.DEBUG_PRINT else None
     return dram, delta_dram, sram, delta_sram
 
 

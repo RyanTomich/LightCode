@@ -48,17 +48,22 @@ def node_list_complete(node_list):
         bool:
     """
     all_nodes = set()
+    parrents = set()
     for node in node_list:
         assert (
             node.stack_id not in all_nodes
         ), f"list has repetitious stack node: {node.stack_id}"
         all_nodes.add(node.stack_id)
+        parrents.update(node.parents)
 
     for node in node_list:
         assert all(
             parent in all_nodes for parent in node.parents
         ), "not all parents are in the list"
-    return True
+
+        assert bool(node.parents) | (
+            node.stack_id in parrents
+        ), f"node {node.stac_id} is an isolated node. each node either needs parents or needs to be a parent"
 
 
 def merge_i_o(full_node_list, original_graph):
@@ -121,6 +126,4 @@ def schedule_validate(schedule_df):
 
 def graph_validate(graph):
     """flat graph validation"""
-    for node in graph.node_list:
-        for parrent in node.parents:
-            assert parrent in graph.id_to_idx
+    node_list_complete(graph.node_list)

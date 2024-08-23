@@ -79,7 +79,6 @@ def graph_partition(graph, weight_variable="time"):
         subgraphs.append(sub_graph)
 
     return subgraphs
-    print("... Subgraphs Made ...") if hw.DEBUG_PRINT else None
 
 
 # endregion
@@ -335,9 +334,7 @@ def pathfinding_node_selection(subgraphs, weight_variable):
         flat_subgraphs.append(
             sg.Graph(subgraph_nodes_list, weight_variable="time")
         )  # switch to time for scheduling
-        print("...     ... Subgraph Nodes selected ...") if hw.DEBUG_PRINT else None
 
-    print("... Nodes selected ...") if hw.DEBUG_PRINT else None
     return flat_subgraphs
 
 
@@ -504,8 +501,7 @@ def _add_in_out(original_graph, node_list):
         new_node.parents = new_parents
         node_list.append(new_node)
 
-    assert test.node_list_complete(node_list)
-    print("...     ... graph i/o added ...") if hw.DEBUG_PRINT else None
+    test.node_list_complete(node_list)
 
 
 def _schedule_in_out(graph, available_hardware):
@@ -550,8 +546,6 @@ def _schedule_in_out(graph, available_hardware):
     if min_start_time < 0:
         _time_shift(available_hardware, graph, -min_start_time)
 
-    print("...     ... graph i/o scheduled ...") if hw.DEBUG_PRINT else None
-
 
 def schdeule_nodes(original_graph, subgraphs, available_hardware):
     """
@@ -579,7 +573,6 @@ def schdeule_nodes(original_graph, subgraphs, available_hardware):
         break_points.append(
             max(max(inner_dict.values()) for inner_dict in available_hardware.values())
         )
-        print("...     ... Subgraph Scheduled ...") if hw.DEBUG_PRINT else None
 
     _add_residual(original_graph, full_node_list)
     test.merge_i_o(full_node_list, original_graph)
@@ -598,7 +591,6 @@ def schdeule_nodes(original_graph, subgraphs, available_hardware):
         5,
     )
 
-    print("... Nodes Schdeuled ...") if hw.DEBUG_PRINT else None
     return (
         graph,
         end_time,
@@ -703,9 +695,7 @@ def expand_nodes(flat_subgraphs):
                 new_subgraph_node_list.append(node)
 
         new_subgraphs.append(sg.Graph(new_subgraph_node_list, subgraph.weight_variable))
-        print("...     ... sungraph Nodes Expanded ...") if hw.DEBUG_PRINT else None
 
-    print("... Nodes Expanded ...") if hw.DEBUG_PRINT else None
     return new_subgraphs
 
 
