@@ -174,7 +174,7 @@ def get_energy_profile(graph):
 
 
 def get_time_profile(graph):
-    '''gets time spent on each node'''
+    """gets time spent on each node"""
     time_profile = {}
     for node in graph.node_list:
         time_profile.setdefault(node.algorithm, 0)

@@ -31,7 +31,9 @@ def group_validate(graph, groups):
             for parent in graph.stack_list[stack].parents:
                 if parent in load_instructions:
                     continue
-                assert parent in included, f"stack {stack.stack_id} parrents were not in the group (excluding residual and i.o)"
+                assert (
+                    parent in included
+                ), f"stack {stack.stack_id} parrents were not in the group (excluding residual and i.o)"
 
 
 def node_list_complete(node_list):

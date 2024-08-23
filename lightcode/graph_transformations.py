@@ -19,6 +19,8 @@ node_value_selection = {
 
 
 # region graph_partition
+
+
 def graph_partition(graph, weight_variable="time"):
     """Finds the Articulation Vertices and partitions the large graph into subgraphs
     StackedGraph objects. Inclusive on both ends of range.
@@ -85,6 +87,8 @@ def graph_partition(graph, weight_variable="time"):
 
 
 # region selection
+
+
 def _extract_stacks(path):
     """returns set of stacks included in the path
 
@@ -107,15 +111,15 @@ def _make_aggreement_list(graph):
     adj_matrix = graph.adj_matrix
     stack_opps = [stack.opp for stack in stack_list]
 
-    for idx in range(adj_matrix.shape[1]):
+    # Ignores memory nodes
+    for idx in range(len(stack_list)):
         row_counts = sum(
             1
-            for stack_idx in range(adj_matrix.shape[1])
+            for stack_idx in range(len(stack_list))
             if adj_matrix[idx, stack_idx] is not None
             and stack_opps[stack_idx] != "memory"
         )
 
-        # Count non-memory elements in the column
         col_count = sum(
             1
             for stack_idx in range(adj_matrix.shape[0])
@@ -123,7 +127,7 @@ def _make_aggreement_list(graph):
             and stack_opps[stack_idx] != "memory"
         )
 
-        # node branches or merges
+        # has> 1 parent or >1 child
         if row_counts > 1 or col_count > 1:
             branches.append(idx)
 
@@ -166,7 +170,9 @@ def _ap_works(group_ap, new_ap):
     )
 
 
-def _add_group(groups, group, stack_aggreement, cur_path, stack_coverage):
+def _add_group(
+    groups, group, stack_aggreement, cur_path, stack_coverage, quick_heuristic=False
+):
     """adds this path to the group of paths
 
     Args:
@@ -178,43 +184,56 @@ def _add_group(groups, group, stack_aggreement, cur_path, stack_coverage):
     """
 
     # Faster method by considering found paths as optimal and extending them if posiable.
-    new_ap = list(group["ap"])
-    for idx in range(len(group["ap"])):
-        new_aggreement = stack_aggreement[idx]
-        if new_aggreement is not None:
-            new_ap[idx] = new_aggreement
+    if quick_heuristic == True:
+        new_ap = list(group["ap"])
+        for idx in range(len(group["ap"])):
+            new_aggreement = stack_aggreement[idx]
+            if new_aggreement is not None:
+                new_ap[idx] = new_aggreement
 
-    group["ap"] = tuple(new_ap)
-    group["paths"] += cur_path
-    group["coverage_groups"].append(stack_coverage)
-    group["total_coverage"].update(stack_coverage)
+        group["ap"] = tuple(new_ap)
+        group["paths"] += cur_path
+        group["coverage_groups"].append(stack_coverage)
+        group["total_coverage"].update(stack_coverage)
 
     # Slower method by considering and extending them, but also leaving them around for later additions
-    # new = False
-    # for idx, val in enumerate(group["ap"]):
-    #     if (val is None) != (stack_aggreement[idx] is None) and (
-    #         val is None or stack_aggreement[idx] is None
-    #     ):
-    #         new = True
+    else:
+        new = False
+        for idx, val in enumerate(group["ap"]):
+            if (val is None) != (stack_aggreement[idx] is None) and (
+                val is None or stack_aggreement[idx] is None
+            ):
+                new = True
 
-    # if new:  # there are None's so keep original
-    #     new_group = copy.deepcopy(group)
-    #     new_group["ap"] = [
-    #         (a if a is not None else b)
-    #         for a, b in zip(new_group["ap"], stack_aggreement)
-    #     ]
-    #     new_group["paths"] += cur_path
-    #     new_group["coverage_groups"].append(stack_coverage)
-    #     new_group["total_coverage"].update(stack_coverage)
-    #     groups.append(new_group)
+        if new:  # there are None's so keep original
+            new_group = copy.deepcopy(group)
+            new_group["ap"] = [
+                (a if a is not None else b)
+                for a, b in zip(new_group["ap"], stack_aggreement)
+            ]
+            new_group["paths"] += cur_path
+            new_group["coverage_groups"].append(stack_coverage)
+            new_group["total_coverage"].update(stack_coverage)
+            groups.append(new_group)
 
-    # else:  # perfect match so mutate group in place
-    #     group["ap"] = [
-    #         (a if a is not None else b) for a, b in zip(group["ap"], stack_aggreement)
-    #     ]
-    #     group["paths"] += cur_path
-    #     group["coverage_groups"].append(stack_coverage)
-    #     group["total_coverage"].update(stack_coverage)
+        else:  # perfect match so mutate group in place
+            group["ap"] = [
+                (a if a is not None else b)
+                for a, b in zip(group["ap"], stack_aggreement)
+            ]
+            group["paths"] += cur_path
+            group["coverage_groups"].append(stack_coverage)
+            group["total_coverage"].update(stack_coverage)
+
+
+def _select_first_occorance(group):
+    stacks_seen = set()
+    nodes = set()
+    for node in group["paths"]:
+        if node[0] not in stacks_seen:
+            nodes.add(node)
+            stacks_seen.add(node[0])
+    return nodes
 
 
 def _ending_node(cur_path, aggreement_stacks, groups, all_nodes):
@@ -235,23 +254,20 @@ def _ending_node(cur_path, aggreement_stacks, groups, all_nodes):
         if (
             _ap_works(group["ap"], stack_aggreement)  # aggreement matches
             and stack_coverage - group["total_coverage"] != {}  # adds coverage
-            # and stack_coverage not in group["coverage_groups"]  # not previously covered
-            # and stack_coverage - group["total_coverage"] != {}  # includes new stacks
-            # and group["total_coverage"] - stack_coverage != {}  # includes new stacks
         ):
-            _add_group(groups, group, stack_aggreement, cur_path, stack_coverage)
+            _add_group(
+                groups,
+                group,
+                stack_aggreement,
+                cur_path,
+                stack_coverage,
+                quick_heuristic=True,
+            )
+            added = True
 
             if group["total_coverage"] == all_nodes:  # group reached full coverage:
-                # paths are in increasing order of time. select earliest occorance of a stack
-                stacks_seen = set()
-                nodes = set()
-                for node in group["paths"]:
-                    if node[0] not in stacks_seen:
-                        nodes.add(node)
-                        stacks_seen.add(node[0])
-                return nodes
-                return set(group["paths"])
-            added = True
+                # paths are in increasing order of time. select earliest occurrence of a stack
+                return _select_first_occorance(group)
 
     if not added:
         groups.append(
@@ -300,7 +316,8 @@ def _rolling_dijkstra(graph, weight_variable):
                 heapq.heappush(que, (new_distance, cur_path + ((neighbor, node),)))
 
     raise ValueError(
-        "These operations are not computable with this hardware. Change hardware or algorithms for the hardware."
+        "These operations are not computable with this hardware. Change hardware or \
+        algorithms for the hardware. Quick_huristic also may be on, leading to missed paths"
     )
 
 
@@ -315,12 +332,13 @@ def pathfinding_node_selection(subgraphs, weight_variable):
     """
     flat_subgraphs = []
     for i, subgraph in enumerate(subgraphs):
-        nodes = _rolling_dijkstra(subgraph, weight_variable=weight_variable)
+        selected_nodes = _rolling_dijkstra(subgraph, weight_variable=weight_variable)
+        # [ (stack_id, node_idx in node_stack) ,]
 
         subgraph_nodes_list = []
-        for node in nodes:
-            subgraph_stack = subgraph.stack_list[node[0]]
-            subgraph_stack.node_selection = node[1]
+        for selected_node in selected_nodes:
+            subgraph_stack = subgraph.stack_list[selected_node[0]]
+            subgraph_stack.node_selection = selected_node[1]
             selected_node = subgraph_stack.node_stack[subgraph_stack.node_selection]
 
             # for flat subgraph
@@ -331,9 +349,8 @@ def pathfinding_node_selection(subgraphs, weight_variable):
                 )
             )
 
-        flat_subgraphs.append(
-            sg.Graph(subgraph_nodes_list, weight_variable="time")
-        )  # switch to time for scheduling
+        # Selection can be based on any weight_variable, but everything afterwards is time based.
+        flat_subgraphs.append(sg.Graph(subgraph_nodes_list, weight_variable="time"))
 
     return flat_subgraphs
 
@@ -342,6 +359,8 @@ def pathfinding_node_selection(subgraphs, weight_variable):
 
 
 # region Schedule
+
+
 def _hardware_synchronize(available_hardware):
     """brings all hardware times up to the max"""
     max_value = max(
@@ -602,6 +621,8 @@ def schdeule_nodes(original_graph, subgraphs, available_hardware):
 
 
 # region Expansion
+
+
 def _group_dot_products(m1, m2):
     """given to tensors, returns dotproducts grouped by most common vector used
 
@@ -852,3 +873,6 @@ def threshold_nodes(stacked_graph, weight_variable="time"):
             )
             threshold_values[stack.stack_id] = threshold_sequence_len
     return threshold_values
+
+
+# endregion
