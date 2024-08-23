@@ -114,4 +114,4 @@ def code_gen(scheduled_flat_graph):
             file.write("\n")
 
     schedule_df = scheduled_flat_graph.create_schedule_data(write=True)
-    stagnent_time = validate.schedule_validate(schedule_df)
+    validate.schedule_validate(schedule_df)

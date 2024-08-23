@@ -153,7 +153,7 @@ def get_edge_val(graph, start_node, end_node, weight_variable):
         int: total cost in seconds or jules (depending on weight_variable)
     """
 
-    num_transfer, bit_transfer = graph._bit_transfer(start_node)
+    num_transfer, bit_transfer = graph._bit_transfer(start_node, direction="out")
 
     start_hw = type(start_node.get_algo_info("hardware"))
     end_hw = type(end_node.get_algo_info("hardware"))

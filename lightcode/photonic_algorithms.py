@@ -49,6 +49,7 @@ def nd_tensor_to_dot(m1, m2, preamble=()):
 
 
 def nd_tensor_to_matx(m1, m2, preamble=()):
+    """Breaks tensor product down to matrix products"""
     if len(m1) == 2:
         yield (
             preamble,  # index

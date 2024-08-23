@@ -174,6 +174,7 @@ def get_energy_profile(graph):
 
 
 def get_time_profile(graph):
+    '''gets time spent on each node'''
     time_profile = {}
     for node in graph.node_list:
         time_profile.setdefault(node.algorithm, 0)
@@ -202,21 +203,6 @@ def time_energy_profiles(graph):
         energy_profile[node.algorithm] += node.energy_cost
 
     return time_profile, energy_profile
-
-
-def get_addmm(scheduled_flat_graph):
-    dense_time = 0
-    add_time = 0
-    # add = 0
-    # for node in scheduled_flat_graph.node_list:
-    #     # if node.input_shapes == shape and node.algorithm == 'multiply':
-    #     if node.algorithm == "matmul":
-
-    #         print(node.stack.tvm_func)
-    #         print(f'{node.input_shapes} -- {node.output_shapes}')
-    #         print(f'{node.time_cost}')
-
-    return dense_time, add_time
 
 
 def plot_arithmatic_intensity(arithmatic_intensity, difference):

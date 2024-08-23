@@ -4,9 +4,6 @@ run using conda (schedule)
 """
 
 import json
-import time
-from tqdm import tqdm
-
 import psutil
 
 import hardware as hw
@@ -72,9 +69,6 @@ def graph_search(
         )
 
     print("---------- ---- ----------")
-
-    if data_collection:
-        dense_time, add_time = dc.get_addmm(scheduled_flat_graph)
 
 
 def threshold_search(relay_path, optimization, available_hardware):

@@ -31,10 +31,7 @@ def group_validate(graph, groups):
             for parent in graph.stack_list[stack].parents:
                 if parent in load_instructions:
                     continue
-                # assert parent in included
-                if parent not in included:
-                    print(stack)
-                    assert False
+                assert parent in included, f"stack {stack.stack_id} parrents were not in the group (excluding residual and i.o)"
 
 
 def node_list_complete(node_list):
@@ -67,11 +64,9 @@ def node_list_complete(node_list):
 
 def merge_i_o(full_node_list, original_graph):
     """Disreguarding i/o, do subgraph and parent graph node parents aggree
-
     Args:
         full_node_list (list): list of Node Objects
         original_graph (Grph): Graph made from Relay IR
-
     Returns:
         bool:
     """
@@ -91,10 +86,9 @@ def merge_i_o(full_node_list, original_graph):
                     - original_graph.out_nodes
                 )
                 this_parent = {int(parent) for parent in node.parents}
-                if this_parent != original_parents:
-                    print(dir(node.stack))
-                assert this_parent == original_parents
-    return True
+                assert (
+                    this_parent == original_parents
+                ), f"node {node.stack_id} has {this_parent - original_parents} mismatched nodes, not couting i/o"
 
 
 def schedule_validate(schedule_df):
@@ -112,14 +106,15 @@ def schedule_validate(schedule_df):
         last_end = 0
         for index, row in hw_sorted.iterrows():
             start = row["start"]
-            assert start >= last_end
+            assert (
+                start >= last_end
+            ), "opps did not produce outputs before they were needed"
             sparse += start - last_end
 
             last_end = row["end"]
 
         stagnent_time[hardware] = sparse
 
-    # print("... No Overlaps ...")
     return stagnent_time
 
 
