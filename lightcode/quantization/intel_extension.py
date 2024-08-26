@@ -31,6 +31,10 @@ from transformers import (
     AutoTokenizer,
 )
 
+import sys
+sys.setrecursionlimit(5000)  # Example: set the limit to 2000
+
+
 # args
 parser = argparse.ArgumentParser(
     "Generation script (weight only quantization path)", add_help=False
@@ -143,7 +147,28 @@ model = ipex.llm.optimize(
     inplace=True,
 )
 
-print(type(model))
+prompt = "My favorite music is "
+inputs = tokenizer(prompt, return_tensors="pt")
+
+torch.onnx.export(
+    model,
+    (inputs["input_ids"], inputs["attention_mask"]),
+    "quantized_model.onnx",
+    input_names=["input_ids", "attention_mask"],
+    output_names=["logits"],
+    dynamic_axes={
+        "input_ids": {0: "batch_size", 1: "sequence"},
+        "attention_mask": {0: "batch_size", 1: "sequence"},
+        "logits": {0: "batch_size", 1: "sequence"},
+    },
+    )
+
+
+# print(model.config)
+
+# for name, param in model.named_parameters():
+#     print(f"Layer: {name}, Data Type: {param.dtype}")
+
 
 ######################################################  # noqa F401
 # # generate args
@@ -155,6 +180,8 @@ print(type(model))
 # input_size = tokenizer(prompt, return_tensors="pt").input_ids.size(dim=1)
 # print("---- Prompt size:", input_size)
 # prompt = [prompt] * args.batch_size
+
+# print(prompt)
 
 # # inference
 # with torch.no_grad(), torch.inference_mode(), torch.cpu.amp.autocast(
