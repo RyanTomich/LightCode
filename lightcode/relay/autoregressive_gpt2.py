@@ -1,3 +1,9 @@
+'''
+Successfully export GPT2 Prefill and Decoder for static size
+env: tvm_conda
+'''
+
+
 import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -59,7 +65,7 @@ def decoder_step(last_token_id, past_key_values):
     logits = outputs[0]
     past_key_values = outputs[1]
 
-    print(f"decoder kv cache {past_key_values.shape}")
+    print(f"decoder kv cache {len(past_key_values)}")
 
     return logits, past_key_values
 
@@ -318,6 +324,11 @@ def run_relay_decoder(lib, last_token_id, kv_cache):
     print(f"{input_ids} + {next_token_id}")
     return next_token_id, outputs[1:]
 
+def save_relay(name, lib):
+    graph_json_path = f'{name}_graph.json'
+    with open(graph_json_path, "w") as f:
+        f.write(lib.get_graph_json())
+
 
 model_name = "gpt2"
 tokenizer = GPT2Tokenizer.from_pretrained(model_name)
@@ -334,7 +345,7 @@ tokenizer.pad_token = tokenizer.eos_token
 device = torch.device("cpu")
 model = model.to(device)
 
-prompt = "The future of AI is going to be"
+prompt = "My favorite music is "
 inputs = tokenize_input(prompt, tokenizer)
 
 input_ids = inputs["input_ids"]
@@ -357,12 +368,12 @@ kv_cache_shape = get_kv_cache(model, sequence_len).shape
 prefill_lib = onnx_to_relay_prefill(input_ids_shape)
 decoder_lib = onnx_to_relay_decoder(kv_cache_shape)
 
-prompt = "The future of AI is going to be"
-inputs = tokenize_input(prompt, tokenizer)
-
 generated_text, last_token_id, past_key_values = generate(
     prompt, tokenizer, num_tokens=5
 )
 
 next_token_id, kv_cache = run_relay_prefill(prefill_lib, inputs)
 next_token_id, kv_cache = run_relay_decoder(decoder_lib, next_token_id, kv_cache)
+
+save_relay('gpt2_prefill', prefill_lib)
+save_relay('gpt2_decoder', decoder_lib)
