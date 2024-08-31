@@ -161,7 +161,7 @@ torch.onnx.export(
         "attention_mask": {0: "batch_size", 1: "sequence"},
         "logits": {0: "batch_size", 1: "sequence"},
     },
-    )
+)
 
 
 # print(model.config)
@@ -198,3 +198,9 @@ torch.onnx.export(
 #         o - i for i, o in zip(input_tokens_lengths, output_tokens_lengths)
 #     ]
 #     print(gen_text, total_new_tokens, flush=True)
+
+
+
+'''
+Hits the recursion limit at 5000
+'''

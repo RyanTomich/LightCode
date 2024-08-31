@@ -1,5 +1,5 @@
 """
-compile a generic model in any format to relay IR
+compile a generic model in any format to relay IR for Prefill stage
 """
 
 import tvm
@@ -253,6 +253,8 @@ def tvm_validation(model_name, prompt):
 
 
 model_name = "meta-llama/Llama-2-7b-hf"
+# model_name = "neuralmagic/Meta-Llama-3.1-8B-Instruct-quantized.w8a8"
+
 prompt = "My favorite music is "
 
 inputs = transformer_torch_to_onnx(model_name, prompt)
