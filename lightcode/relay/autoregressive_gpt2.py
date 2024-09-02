@@ -90,7 +90,7 @@ def generate(prompt, tokenizer, num_tokens=10):
 
 
 # Exporting to onnx
-def onnx_export_prefill(model):
+def onnx_export_prefill(model, device=torch.device("cpu")):
 
     # 10 sequence length is arbatrary. will make dynamic anyway
     dummy_input_ids = torch.randint(
@@ -324,56 +324,57 @@ def run_relay_decoder(lib, last_token_id, kv_cache):
     print(f"{input_ids} + {next_token_id}")
     return next_token_id, outputs[1:]
 
+
 def save_relay(name, lib):
-    graph_json_path = f'{name}_graph.json'
+    graph_json_path = f'../models/{name}_graph.json'
     with open(graph_json_path, "w") as f:
         f.write(lib.get_graph_json())
 
+if __name__ == "__main__":  # import guard
+    model_name = "gpt2"
+    tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+    model = GPT2LMHeadModel.from_pretrained(model_name)
 
-model_name = "gpt2"
-tokenizer = GPT2Tokenizer.from_pretrained(model_name)
-model = GPT2LMHeadModel.from_pretrained(model_name)
+    # model_name = "meta-llama/Llama-2-7b-hf"
+    # tokenizer = AutoTokenizer.from_pretrained(model_name)
+    # model = AutoModelForCausalLM.from_pretrained(model_name)
 
-# model_name = "meta-llama/Llama-2-7b-hf"
-# tokenizer = AutoTokenizer.from_pretrained(model_name)
-# model = AutoModelForCausalLM.from_pretrained(model_name)
+    model.eval()
 
-model.eval()
+    tokenizer.pad_token = tokenizer.eos_token
 
-tokenizer.pad_token = tokenizer.eos_token
+    device = torch.device("cpu")
+    model = model.to(device)
 
-device = torch.device("cpu")
-model = model.to(device)
+    prompt = "My favorite music is "
+    inputs = tokenize_input(prompt, tokenizer)
 
-prompt = "My favorite music is "
-inputs = tokenize_input(prompt, tokenizer)
+    input_ids = inputs["input_ids"]
+    attention_mask = inputs["attention_mask"]
 
-input_ids = inputs["input_ids"]
-attention_mask = inputs["attention_mask"]
+    generated_text, last_token_id, past_key_values = generate(
+        prompt, tokenizer, num_tokens=5
+    )
 
-generated_text, last_token_id, past_key_values = generate(
-    prompt, tokenizer, num_tokens=5
-)
+    onnx_export_prefill(model)
+    onnx_export_decoder(model)
 
-onnx_export_prefill(model)
-onnx_export_decoder(model)
+    # get_profile_prefill_decoder()
 
-# get_profile_prefill_decoder()
+    sequence_len = len(input_ids[0])
+    input_ids_shape = (1, sequence_len)
 
-sequence_len = len(input_ids[0])
-input_ids_shape = (1, sequence_len)
+    kv_cache_shape = get_kv_cache(model, sequence_len).shape
 
-kv_cache_shape = get_kv_cache(model, sequence_len).shape
+    prefill_lib = onnx_to_relay_prefill(input_ids_shape)
+    decoder_lib = onnx_to_relay_decoder(kv_cache_shape)
 
-prefill_lib = onnx_to_relay_prefill(input_ids_shape)
-decoder_lib = onnx_to_relay_decoder(kv_cache_shape)
+    generated_text, last_token_id, past_key_values = generate(
+        prompt, tokenizer, num_tokens=5
+    )
 
-generated_text, last_token_id, past_key_values = generate(
-    prompt, tokenizer, num_tokens=5
-)
+    next_token_id, kv_cache = run_relay_prefill(prefill_lib, inputs)
+    next_token_id, kv_cache = run_relay_decoder(decoder_lib, next_token_id, kv_cache)
 
-next_token_id, kv_cache = run_relay_prefill(prefill_lib, inputs)
-next_token_id, kv_cache = run_relay_decoder(decoder_lib, next_token_id, kv_cache)
-
-save_relay('gpt2_prefill', prefill_lib)
-save_relay('gpt2_decoder', decoder_lib)
+    save_relay('gpt2_prefill', prefill_lib)
+    save_relay('gpt2_decoder', decoder_lib)

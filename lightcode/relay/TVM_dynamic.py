@@ -1,3 +1,12 @@
+'''
+[ERROR] Check failed: (pval != nullptr) is false: Cannot allocate memory symbolic tensor shape [1, ?]
+
+Fails because Relay does not support dynamic memory allocation. Need to use Relax for dynamicim
+
+env: tvm_conda
+'''
+
+
 import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
@@ -51,6 +60,8 @@ target = "llvm"
 with tvm.transform.PassContext(opt_level=0, config=config):
     lib = relay.build(mod, target=target, params=params)
 
+'''[ERROR] Check failed: (pval != nullptr) is false: Cannot allocate memory symbolic tensor shape [1, ?]'''
+
 
 dev = tvm.cpu(0)
 module = graph_executor.GraphModule(lib["default"](dev))
@@ -63,7 +74,3 @@ module.run()
 
 output = module.get_output(0).asnumpy()
 print(output)
-
-'''
-  Check failed: (pval != nullptr) is false: Cannot allocate memory symbolic tensor shape [1, ?]
-'''

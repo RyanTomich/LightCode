@@ -1,4 +1,10 @@
+'''
+[FAIL] Killed on loading param step
+env: tvm_conda
+'''
+
 import torch
+import os
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 from transformers import LlamaForCausalLM, LlamaTokenizer
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -87,6 +93,10 @@ def generate(prompt, tokenizer, num_tokens=10):
 
 # Exporting to onnx
 def onnx_export_prefill(model):
+    onnx_path =  "../models/llama_prefill.onnx"
+    if os.path.exists(onnx_path):
+        print("already a {onnx_path}")
+        return
 
     # 10 sequence length is arbatrary. will make dynamic anyway
     dummy_input_ids = torch.randint(
@@ -104,7 +114,7 @@ def onnx_export_prefill(model):
     torch.onnx.export(
         model,
         (dummy_input_ids,),
-        "../models/llama_prefill.onnx",
+        onnx_path,
         input_names=["input_ids"],
         output_names=["logits"] + key_val_names,
         dynamic_axes={
@@ -117,6 +127,11 @@ def onnx_export_prefill(model):
 
 def onnx_export_decoder(model):
 
+    onnx_path = "../models/llama_decoder.onnx"
+    if os.path.exists(onnx_path):
+        print("already a {onnx_path}")
+        return
+
     class LlamaWithKVCache(torch.nn.Module):
         def __init__(self, llama_model):
             super(LlamaWithKVCache, self).__init__()
@@ -128,10 +143,8 @@ def onnx_export_decoder(model):
             )
             return output[0], output[1]
 
-    # model = GPT2LMHeadModel.from_pretrained("gpt2")
-    # model.eval()
-
     model_with_kv_cache = LlamaWithKVCache(model)
+    model_with_kv_cache.eval()
 
     # 10 sequence length is arbatrary. will make dynamic anyway
     dummy_last_token_id = torch.tensor([[50256]], device=device)
@@ -158,7 +171,7 @@ def onnx_export_decoder(model):
             dummy_last_token_id,
             dummy_past_key_values,
         ),
-        "../models/llama_decoder.onnx",
+        onnx_path,
         input_names=["input_ids"] + past_key_val_names,
         output_names=["logits"] + past_key_val_out_names,
         dynamic_axes={
@@ -238,7 +251,9 @@ def onnx_to_relay_prefill(input_shape, opt_level=0):
     onnx.checker.check_model(onnx_model_path)
     mod, params = relay.frontend.from_onnx(onnx_model, shape_dict)
 
-    config = {"relay.FuseOps.max_depth": 0}
+    config = {
+        "relay.FuseOps.max_depth": 0,
+    }
 
     target = tvm.target.Target("llvm", host="llvm")
     with tvm.transform.PassContext(opt_level=opt_level, config=config):
@@ -323,14 +338,16 @@ def run_relay_decoder(lib, last_token_id, kv_cache):
     return next_token_id, outputs[1:]
 
 
+def save_relay(name, lib):
+    graph_json_path = f'{name}_graph.json'
+    with open(graph_json_path, "w") as f:
+        f.write(lib.get_graph_json())
+
+
 model_name = "meta-llama/Llama-2-7b-hf"
-# tokenizer = AutoTokenizer.from_pretrained(model_name)
-# model = AutoModelForCausalLM.from_pretrained(model_name)
 
 tokenizer = LlamaTokenizer.from_pretrained(model_name)
 model = LlamaForCausalLM.from_pretrained(model_name, torchscript=True)
-
-LlamaForCausalLM and LlamaTokenizer
 
 model.eval()
 
@@ -345,32 +362,34 @@ inputs = tokenize_input(prompt, tokenizer)
 input_ids = inputs["input_ids"]
 attention_mask = inputs["attention_mask"]
 
-# generated_text, last_token_id, past_key_values = generate(
-#     prompt, tokenizer, num_tokens=5
-# )
+generated_text, last_token_id, past_key_values = generate(
+    prompt, tokenizer, num_tokens=5
+)
 
-# onnx_export_prefill(model)
-onnx_export_decoder(model)
+onnx_export_prefill(model)
+# onnx_export_decoder(model)
 
 # # get_profile_prefill_decoder()
 
-# sequence_len = len(input_ids[0])
-# input_ids_shape = (1, sequence_len)
+sequence_len = len(input_ids[0])
+input_ids_shape = (1, sequence_len)
 
-# print(sequence_len)
-# print(input_ids_shape)
+print(sequence_len)
+print(input_ids_shape)
 
 # kv_cache_shape = get_kv_cache(model, sequence_len).shape
 
-# prefill_lib = onnx_to_relay_prefill(input_ids_shape)
+prefill_lib = onnx_to_relay_prefill(input_ids_shape)
 # decoder_lib = onnx_to_relay_decoder(kv_cache_shape)
 
-# prompt = "The future of AI is going to be"
-# inputs = tokenize_input(prompt, tokenizer)
+prompt = "My favorite music is "
+inputs = tokenize_input(prompt, tokenizer)
 
-# generated_text, last_token_id, past_key_values = generate(
-#     prompt, tokenizer, num_tokens=5
-# )
+generated_text, last_token_id, past_key_values = generate(
+    prompt, tokenizer, num_tokens=5
+)
 
-# next_token_id, kv_cache = run_relay_prefill(prefill_lib, inputs)
+next_token_id, kv_cache = run_relay_prefill(prefill_lib, inputs)
 # next_token_id, kv_cache = run_relay_decoder(decoder_lib, next_token_id, kv_cache)
+
+save_relay("llama_2_7b_prefill", prefill_lib)
