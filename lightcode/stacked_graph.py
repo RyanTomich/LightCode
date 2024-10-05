@@ -7,6 +7,23 @@ import pandas as pd
 import hardware as hw
 import input_validation as validate
 
+def get_moc_size(shape, sequence_len, moc_sequence_len):
+    '''
+    stack.input_shapes, moc_sequence_len),
+    '''
+    def recursive_replace(search, find, replacement):
+        new_search = []
+        for idx, val in enumerate(search):
+            if not isinstance(val, int):
+                new_search.append(recursive_replace(val, find, replacement))
+            elif val == find:
+                new_search.append(replacement)
+            else:
+                new_search.append(val)
+        return new_search
+
+    # 6 will need to changes based on how dynamic graphs look
+    return recursive_replace(shape, sequence_len, moc_sequence_len)
 
 class Node:
     """represent one posiable algorithm for one opperation"""
@@ -277,9 +294,9 @@ class Graph:
 class StackGraph(Graph):
     """Represents a Dependancy Graph of Stack Objects"""
 
-    def __init__(self, weight_variable, stack_list=None, raw_json=None):
+    def __init__(self, weight_variable, stack_list=None, raw_json=None, moc_sequence_length=None):
         self.raw_json = raw_json
-        self.stack_list = stack_list if not raw_json else self._create_stacks()
+        self.stack_list = stack_list if not raw_json else self._create_stacks(moc_sequence_length)
         super().__init__(self.stack_list, weight_variable)
         assert self.node_list == self.stack_list
 
@@ -289,7 +306,7 @@ class StackGraph(Graph):
     def __len__(self):
         return len(self.stack_list)
 
-    def _create_stacks(self):
+    def _create_stacks(self, moc_sequence_length=None):
         ajusted_shapes = []
         split_shift = 0
         for index, node in enumerate(self.raw_json["nodes"]):
@@ -314,6 +331,10 @@ class StackGraph(Graph):
             tvm_func = None
             if "attrs" in node:
                 tvm_func = node["attrs"]["func_name"]
+
+            if moc_sequence_length:
+                input_shapes = get_moc_size(input_shapes, 6, moc_sequence_length) # num is sequence len the json was generated at
+                output_shapes = get_moc_size(output_shapes, 6, moc_sequence_length)
 
             stacks.append(
                 Stack(

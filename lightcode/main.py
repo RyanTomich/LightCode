@@ -15,7 +15,7 @@ import code_generation as cg
 
 
 def open_json(path):
-    with open(relay_path, encoding="utf-8") as json_file:
+    with open(path, encoding="utf-8") as json_file:
         return json.load(json_file)
 
 
@@ -23,6 +23,7 @@ def graph_search(
     relay_path,
     optimization,
     available_hardware,
+    moc_sequence_length,
     profiles=True,
     data_collection=False,
 ):
@@ -30,7 +31,7 @@ def graph_search(
 
     WEIGHT_VARIABLE = optimization
 
-    graph = sg.StackGraph(raw_json=raw_json, weight_variable=WEIGHT_VARIABLE)
+    graph = sg.StackGraph(raw_json=raw_json, weight_variable=WEIGHT_VARIABLE, moc_sequence_length = moc_sequence_length)
     stacked_subgraphs = list(gt.graph_partition(graph, weight_variable=WEIGHT_VARIABLE))
     flat_subgraphs = gt.pathfinding_node_selection(
         stacked_subgraphs, weight_variable=WEIGHT_VARIABLE
@@ -44,31 +45,39 @@ def graph_search(
     validate.graph_validate(scheduled_flat_graph)
     cg.code_gen(scheduled_flat_graph)
 
-    print("---------- INFO ----------")
-    print(f"{WEIGHT_VARIABLE=}")
-    dc.get_photonic(flat_subgraphs)
-    print(
-        dc.get_all_algorithms(flat_subgraphs).symmetric_difference(
-            dc.get_all_algorithms(scheduled_flat_graph)
-        )
-    )
+    # print("---------- INFO ----------")
+    # print(f"{WEIGHT_VARIABLE=}")
+    # print(f"{moc_sequence_length=}")
+    # dc.get_photonic(flat_subgraphs)
+    # print(
+    #     dc.get_all_algorithms(flat_subgraphs).symmetric_difference(
+    #         dc.get_all_algorithms(scheduled_flat_graph)
+    #     )
+    # )
 
-    print(f"Makespan: {end_time} s")
-    print(f"Number of Nodes: {len(scheduled_flat_graph.node_list)}")
-
+    # print(f"Makespan: {end_time} s")
+    # print(f"Number of Nodes: {len(scheduled_flat_graph.node_list)}")
+    total_energy = None
     if profiles:
         dram, delta_dram, sram, delta_sram = dc.get_memory_profile(scheduled_flat_graph)
-        print(f"Net DRAM: {dram[-1][1]} bits")
-        print(f"Net SRAM: {sram[-1][1]} bits")
+        # print(f"Net DRAM: {dram[-1][1]} bits")
+        # print(f"Net SRAM: {sram[-1][1]} bits")
         energy_data, delta_energy, total_energy = dc.get_energy_profile(
             scheduled_flat_graph
         )
-        print(f"Total Energy Consumption: {total_energy} pico-joules")
-        print(
-            f"time_distrabution {dc.get_time_profile(scheduled_flat_graph)} compute seconds "
-        )
+        # print(f"Total Energy Consumption: {total_energy} pico-joules")
+        # print(
+            # f"time_distrabution {dc.get_time_profile(scheduled_flat_graph)} compute seconds "
+        # )
 
-    print("---------- ---- ----------")
+    # print("---------- ---- ----------")
+
+    return {
+        "moc_sequence_length": moc_sequence_length,
+        "Makespan": end_time,
+        "total_energy": total_energy,
+        "num_nodes": len(scheduled_flat_graph.node_list)
+    }
 
 
 def threshold_search(relay_path, optimization, available_hardware):
@@ -84,12 +93,14 @@ def threshold_search(relay_path, optimization, available_hardware):
 
 if __name__ == "__main__":  # import guard
 
+    # relay_path = "models/gpt2_prefill_graph.json"
+    relay_path = "models/gpt2_decoder_graph.json"
     # relay_path = "models/gpt2_graph.json"
     # relay_path = "models/Llama-2-7b-hf_graph.json"
-    relay_path = "models/opt0_Llama-2-7b-hf_graph.json"
+    # relay_path = "models/opt0_Llama-2-7b-hf_graph.json"
 
-    # optimization = "time"
-    optimization = "energy"
+    optimization = "time"
+    # optimization = "energy"
 
     # cpu_freq = psutil.cpu_freq()
     # print(cpu_freq)
@@ -108,16 +119,19 @@ if __name__ == "__main__":  # import guard
     # available_hardware = hw.initilize_hardware([hw.CPU(14792899408, 1)])
     available_hardware = hw.initilize_hardware(hardware)
 
-    graph_search(
+    ans = graph_search(
         relay_path,
         optimization,
         available_hardware,
+        moc_sequence_length = 100,
         profiles=True,
-        data_collection=True,
+        data_collection=False,
     )
 
-    threshold_search(
-        relay_path,
-        optimization,
-        available_hardware,
-    )
+    print(ans)
+
+    # threshold_search(
+    #     relay_path,
+    #     optimization,
+    #     available_hardware,
+    # )

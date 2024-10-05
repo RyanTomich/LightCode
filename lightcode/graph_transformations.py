@@ -26,13 +26,14 @@ def graph_partition(graph, weight_variable="time"):
     StackedGraph objects. Inclusive on both ends of range.
     graph: StackedGraph
     """
+    scatter_stack = None
     for stack in graph.stack_list:
         if stack.opp == "nd":
             scatter_stack = stack
             continue
 
     for stack in graph.stack_list:
-        if scatter_stack.stack_id in stack.parents:
+        if scatter_stack and (scatter_stack.stack_id in stack.parents):
             graph.residual.add(stack.stack_id)
 
     groups = list(graph.get_node_groups(asap=False))
@@ -726,22 +727,6 @@ def expand_nodes(flat_subgraphs):
 # regon Thresholding
 
 
-def _get_moc_size(shape, moc_sequence_len):
-    def recursive_replace(search, find, replacement):
-        new_search = []
-        for idx, val in enumerate(search):
-            if not isinstance(val, int):
-                new_search.append(recursive_replace(val, find, replacement))
-            elif val == find:
-                new_search.append(replacement)
-            else:
-                new_search.append(val)
-        return new_search
-
-    # 6 will need to changes based on how dynamic graphs look
-    return recursive_replace(shape, 6, moc_sequence_len)
-
-
 def _get_all_in_connection_cost(stacked_graph, moc_stack):
     dependancys = [(inp, moc_stack.stack_id) for inp in moc_stack.parents]
 
@@ -806,8 +791,8 @@ def _get_stack_threshold(
         moc_stack = sg.Stack(
             stack.stack_id,
             stack.parents,
-            _get_moc_size(stack.input_shapes, moc_sequence_len),
-            _get_moc_size(stack.output_shapes, moc_sequence_len),
+            sg.get_moc_size(stack.input_shapes, 6, moc_sequence_len),
+            sg.get_moc_size(stack.output_shapes, 6, moc_sequence_len),
             stack.tvm_func,
             relay_node=stack.relay_node,
         )
