@@ -93,11 +93,18 @@ def threshold_search(relay_path, optimization, available_hardware):
 
 if __name__ == "__main__":  # import guard
 
-    # relay_path = "models/gpt2_prefill_graph.json"
-    relay_path = "models/gpt2_decoder_graph.json"
+    relay_path = "models/gpt2_prefill_graph.json"
+    # relay_path = "models/gpt2_decoder_graph.json"
     # relay_path = "models/gpt2_graph.json"
     # relay_path = "models/Llama-2-7b-hf_graph.json"
     # relay_path = "models/opt0_Llama-2-7b-hf_graph.json"
+    # relay_path = "models/llama_2_7b_decoder_graph.json" # 10
+
+    # relay_path = "models/len_comparison/gpt2_decoder_graph_5.json"
+    # relay_path = "models/len_comparison/gpt2_decoder_graph_6.json"
+    # relay_path = "models/len_comparison/gpt2_prefill_graph_5.json"
+    # relay_path = "models/len_comparison/gpt2_prefill_graph_6.json"
+
 
     optimization = "time"
     # optimization = "energy"
@@ -123,7 +130,7 @@ if __name__ == "__main__":  # import guard
         relay_path,
         optimization,
         available_hardware,
-        moc_sequence_length = 100,
+        moc_sequence_length = None,
         profiles=True,
         data_collection=False,
     )

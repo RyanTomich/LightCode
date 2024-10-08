@@ -326,7 +326,7 @@ def run_relay_decoder(lib, last_token_id, kv_cache):
 
 
 def save_relay(name, lib):
-    graph_json_path = f'../models/{name}_graph.json'
+    graph_json_path = f'../models/len_comparison/{name}_graph_{sequence_len}.json'
     with open(graph_json_path, "w") as f:
         f.write(lib.get_graph_json())
 
@@ -346,7 +346,7 @@ if __name__ == "__main__":  # import guard
     device = torch.device("cpu")
     model = model.to(device)
 
-    prompt = "My favorite music is "
+    prompt = "My favorite music is the "
     inputs = tokenize_input(prompt, tokenizer)
 
     input_ids = inputs["input_ids"]

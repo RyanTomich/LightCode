@@ -10,20 +10,28 @@ import input_validation as validate
 def get_moc_size(shape, sequence_len, moc_sequence_len):
     '''
     stack.input_shapes, moc_sequence_len),
+    replaces a numbers in a nested list
+    replaces the sequence_len with moc_sequence_len and
+    sequence_len+1 with moc_sequence_len+1
     '''
     def recursive_replace(search, find, replacement):
+        '''
+        find is a list
+        '''
         new_search = []
         for idx, val in enumerate(search):
             if not isinstance(val, int):
                 new_search.append(recursive_replace(val, find, replacement))
-            elif val == find:
+            elif val == find[0]:
                 new_search.append(replacement)
+            elif val == find[1]:
+                new_search.append(replacement+1)
             else:
                 new_search.append(val)
         return new_search
 
     # 6 will need to changes based on how dynamic graphs look
-    return recursive_replace(shape, sequence_len, moc_sequence_len)
+    return recursive_replace(shape, [sequence_len, sequence_len+1], moc_sequence_len)
 
 class Node:
     """represent one posiable algorithm for one opperation"""

@@ -366,10 +366,10 @@ generated_text, last_token_id, past_key_values = generate(
     prompt, tokenizer, num_tokens=5
 )
 
-onnx_export_prefill(model)
-# onnx_export_decoder(model)
+# onnx_export_prefill(model)
+onnx_export_decoder(model)
 
-# # get_profile_prefill_decoder()
+# get_profile_prefill_decoder()
 
 sequence_len = len(input_ids[0])
 input_ids_shape = (1, sequence_len)
@@ -377,10 +377,10 @@ input_ids_shape = (1, sequence_len)
 print(sequence_len)
 print(input_ids_shape)
 
-# kv_cache_shape = get_kv_cache(model, sequence_len).shape
+kv_cache_shape = get_kv_cache(model, sequence_len).shape
 
-prefill_lib = onnx_to_relay_prefill(input_ids_shape)
-# decoder_lib = onnx_to_relay_decoder(kv_cache_shape)
+# prefill_lib = onnx_to_relay_prefill(input_ids_shape)
+decoder_lib = onnx_to_relay_decoder(kv_cache_shape)
 
 prompt = "My favorite music is "
 inputs = tokenize_input(prompt, tokenizer)
@@ -389,7 +389,8 @@ generated_text, last_token_id, past_key_values = generate(
     prompt, tokenizer, num_tokens=5
 )
 
-next_token_id, kv_cache = run_relay_prefill(prefill_lib, inputs)
+# next_token_id, kv_cache = run_relay_prefill(prefill_lib, inputs)
 # next_token_id, kv_cache = run_relay_decoder(decoder_lib, next_token_id, kv_cache)
 
-save_relay("llama_2_7b_prefill", prefill_lib)
+# save_relay("llama_2_7b_prefill", prefill_lib)
+save_relay("llama_2_7b_decoder", decoder_lib)
