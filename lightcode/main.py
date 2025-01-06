@@ -3,7 +3,6 @@ Entry to program
 run using conda (schedule)
 """
 
-import json
 import psutil
 
 import hardware as hw
@@ -12,29 +11,21 @@ import stacked_graph as sg
 import input_validation as validate
 import data_collection as dc
 import code_generation as cg
-
-
-def open_json(path):
-    with open(path, encoding="utf-8") as json_file:
-        return json.load(json_file)
+import models as models
 
 
 def graph_search(
-    relay_path,
+    model,
     optimization,
     available_hardware,
     moc_sequence_length,
     profiles=True,
     data_collection=False,
 ):
-    raw_json = open_json(relay_path)
-
-    WEIGHT_VARIABLE = optimization
-
-    graph = sg.StackGraph(raw_json=raw_json, weight_variable=WEIGHT_VARIABLE, moc_sequence_length = moc_sequence_length)
-    stacked_subgraphs = list(gt.graph_partition(graph, weight_variable=WEIGHT_VARIABLE))
+    graph = sg.StackGraph(model=model, weight_variable=optimization, moc_sequence_length = moc_sequence_length)
+    stacked_subgraphs = list(gt.graph_partition(graph, weight_variable=optimization))
     flat_subgraphs = gt.pathfinding_node_selection(
-        stacked_subgraphs, weight_variable=WEIGHT_VARIABLE
+        stacked_subgraphs, weight_variable=optimization
     )
     expanded_flat_subgraphs = gt.expand_nodes(flat_subgraphs)
     scheduled_flat_graph, end_time, break_points = gt.schdeule_nodes(
@@ -93,19 +84,6 @@ def threshold_search(relay_path, optimization, available_hardware):
 
 if __name__ == "__main__":  # import guard
 
-    relay_path = "models/gpt2_prefill_graph.json"
-    # relay_path = "models/gpt2_decoder_graph.json"
-    # relay_path = "models/gpt2_graph.json"
-    # relay_path = "models/Llama-2-7b-hf_graph.json"
-    # relay_path = "models/opt0_Llama-2-7b-hf_graph.json"
-    # relay_path = "models/llama_2_7b_decoder_graph.json" # 10
-
-    # relay_path = "models/len_comparison/gpt2_decoder_graph_5.json"
-    # relay_path = "models/len_comparison/gpt2_decoder_graph_6.json"
-    # relay_path = "models/len_comparison/gpt2_prefill_graph_5.json"
-    # relay_path = "models/len_comparison/gpt2_prefill_graph_6.json"
-
-
     optimization = "time"
     # optimization = "energy"
 
@@ -127,7 +105,7 @@ if __name__ == "__main__":  # import guard
     available_hardware = hw.initilize_hardware(hardware)
 
     ans = graph_search(
-        relay_path,
+        models.gpt2_prefill,
         optimization,
         available_hardware,
         moc_sequence_length = None,

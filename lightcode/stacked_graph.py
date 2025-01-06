@@ -302,9 +302,12 @@ class Graph:
 class StackGraph(Graph):
     """Represents a Dependancy Graph of Stack Objects"""
 
-    def __init__(self, weight_variable, stack_list=None, raw_json=None, moc_sequence_length=None):
-        self.raw_json = raw_json
-        self.stack_list = stack_list if not raw_json else self._create_stacks(moc_sequence_length)
+    def __init__(self, weight_variable, stack_list=None, model=None, moc_sequence_length=None):
+        if stack_list:
+            self.stack_list = stack_list
+        else:
+            self.raw_json = model.get_raw_json()
+            self.stack_list = self._create_stacks(model.sequence_length, moc_sequence_length)
         super().__init__(self.stack_list, weight_variable)
         assert self.node_list == self.stack_list
 
@@ -314,7 +317,7 @@ class StackGraph(Graph):
     def __len__(self):
         return len(self.stack_list)
 
-    def _create_stacks(self, moc_sequence_length=None):
+    def _create_stacks(self, sequence_length=None, moc_sequence_length=None):
         ajusted_shapes = []
         split_shift = 0
         for index, node in enumerate(self.raw_json["nodes"]):
@@ -336,13 +339,13 @@ class StackGraph(Graph):
             ]
             output_shapes = [ajusted_shapes[index] for _ in range(num_output)]
 
+            if moc_sequence_length:
+                input_shapes = get_moc_size(input_shapes, sequence_length, moc_sequence_length) # num is sequence len the json was generated at
+                output_shapes = get_moc_size(output_shapes, sequence_length, moc_sequence_length)
+
             tvm_func = None
             if "attrs" in node:
                 tvm_func = node["attrs"]["func_name"]
-
-            if moc_sequence_length:
-                input_shapes = get_moc_size(input_shapes, 6, moc_sequence_length) # num is sequence len the json was generated at
-                output_shapes = get_moc_size(output_shapes, 6, moc_sequence_length)
 
             stacks.append(
                 Stack(
