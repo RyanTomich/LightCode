@@ -36,15 +36,16 @@ def graph_search(
     validate.graph_validate(scheduled_flat_graph)
     cg.code_gen(scheduled_flat_graph)
 
-    # print("---------- INFO ----------")
-    # print(f"{WEIGHT_VARIABLE=}")
-    # print(f"{moc_sequence_length=}")
-    # dc.get_photonic(flat_subgraphs)
-    # print(
-    #     dc.get_all_algorithms(flat_subgraphs).symmetric_difference(
-    #         dc.get_all_algorithms(scheduled_flat_graph)
-    #     )
-    # )
+    if data_collection:
+        # print("---------- INFO ----------")
+        # print(f"{WEIGHT_VARIABLE=}")
+        # print(f"{moc_sequence_length=}")
+        selected = dc.get_photonic(flat_subgraphs)
+        # print(
+        #     dc.get_all_algorithms(flat_subgraphs).symmetric_difference(
+        #         dc.get_all_algorithms(scheduled_flat_graph)
+        #     )
+        # )
 
     # print(f"Makespan: {end_time} s")
     # print(f"Number of Nodes: {len(scheduled_flat_graph.node_list)}")
@@ -62,30 +63,35 @@ def graph_search(
         # )
 
     # print("---------- ---- ----------")
-
-    return {
+    ret = {
         "moc_sequence_length": moc_sequence_length,
         "Makespan": end_time,
         "total_energy": total_energy,
         "num_nodes": len(scheduled_flat_graph.node_list)
     }
 
+    if data_collection:
+        ret['num_photonic'] = selected[0]
+        ret['posiable_photonic'] = selected[1]
 
-def threshold_search(relay_path, optimization, available_hardware):
-    WEIGHT_VARIABLE = optimization
-    raw_json = open_json(relay_path)
-    graph = sg.StackGraph(raw_json=raw_json, weight_variable=WEIGHT_VARIABLE)
-    node_thresholds = gt.threshold_nodes(graph, weight_variable=WEIGHT_VARIABLE)
-    thresholds = set()
-    for i, v in node_thresholds.items():
-        thresholds.add(v)
+    return ret
+
+
+def threshold_search(model, optimization, available_hardware):
+    graph = sg.StackGraph(model=model, weight_variable=optimization)
+    node_thresholds = gt.threshold_nodes(model, graph, weight_variable=optimization)
+    thresholds = {}
+    for node, threshold in node_thresholds.items():
+        thresholds[threshold] = thresholds.get(threshold,0) + 1
+        # if threshold != None:
+            # print(f"{node}: {threshold}")
     print(thresholds)
 
 
 if __name__ == "__main__":  # import guard
 
-    optimization = "time"
-    # optimization = "energy"
+    # optimization = "time"
+    optimization = "energy"
 
     # cpu_freq = psutil.cpu_freq()
     # print(cpu_freq)
@@ -104,19 +110,19 @@ if __name__ == "__main__":  # import guard
     # available_hardware = hw.initilize_hardware([hw.CPU(14792899408, 1)])
     available_hardware = hw.initilize_hardware(hardware)
 
-    ans = graph_search(
+    # ans = graph_search(
+    #     models.gpt2_prefill,
+    #     optimization,
+    #     available_hardware,
+    #     moc_sequence_length = 1400,
+    #     profiles=True,
+    #     data_collection=True,
+    # )
+
+    # print(ans)
+
+    threshold_search(
         models.gpt2_prefill,
         optimization,
         available_hardware,
-        moc_sequence_length = None,
-        profiles=True,
-        data_collection=False,
     )
-
-    print(ans)
-
-    # threshold_search(
-    #     relay_path,
-    #     optimization,
-    #     available_hardware,
-    # )

@@ -22,7 +22,8 @@ def get_photonic(subgraphs):
             if "phu" in node.algorithm:
                 selected += 1
 
-    print(f"Photonic Selected: {selected} / {total}")
+    # print(f"Photonic Selected: {selected} / {total}")
+    return (selected , total)
 
 
 def get_memory_profile(graph):
