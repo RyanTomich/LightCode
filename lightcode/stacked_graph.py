@@ -95,6 +95,7 @@ class Stack:
         relay_node=None,
         opp=None,
         node_stack=None,
+        only_phu = False,
     ):
         self.stack_id = stack_id
         self.parents = parents
@@ -116,15 +117,22 @@ class Stack:
                 else "memory"
             )
         )
-        self.node_stack = (
-            node_stack
-            if relay_node is None
-            else [
+        if relay_node is None:
+            self.node_stack = node_stack
+        else:
+            node_list = [
                 Node(alg, self)
                 for alg, algorithm_obj in hw.Hardware.algs.items()
                 if self.opp == algorithm_obj.opp
             ]
-        )
+            if only_phu and len(node_list) > 1:
+                self.node_stack = []
+                for node in node_list:
+                    if 'phu' in node.algorithm:
+                        self.node_stack.append(node)
+            else:
+                self.node_stack = node_list
+
         self.node_selection = None
 
     def __iter__(self):
@@ -307,7 +315,7 @@ class StackGraph(Graph):
             self.stack_list = stack_list
         else:
             self.raw_json = model.get_raw_json()
-            self.stack_list = self._create_stacks(model.sequence_length, moc_sequence_length)
+            self.stack_list = self._create_stacks(weight_variable, model.sequence_length, moc_sequence_length)
         super().__init__(self.stack_list, weight_variable)
         assert self.node_list == self.stack_list
 
@@ -317,7 +325,7 @@ class StackGraph(Graph):
     def __len__(self):
         return len(self.stack_list)
 
-    def _create_stacks(self, sequence_length=None, moc_sequence_length=None):
+    def _create_stacks(self, optimization, sequence_length=None, moc_sequence_length=None):
         ajusted_shapes = []
         split_shift = 0
         for index, node in enumerate(self.raw_json["nodes"]):
@@ -355,6 +363,7 @@ class StackGraph(Graph):
                     output_shapes,
                     tvm_func,
                     relay_node=node,
+                    only_phu = (optimization == 'always_phu')
                 )
             )
 

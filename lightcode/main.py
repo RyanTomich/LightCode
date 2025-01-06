@@ -34,7 +34,7 @@ def graph_search(
     schedule_df = scheduled_flat_graph.create_schedule_data()
 
     validate.graph_validate(scheduled_flat_graph)
-    cg.code_gen(scheduled_flat_graph)
+    # cg.code_gen(scheduled_flat_graph)
 
     if data_collection:
         # print("---------- INFO ----------")
@@ -91,7 +91,8 @@ def threshold_search(model, optimization, available_hardware):
 if __name__ == "__main__":  # import guard
 
     # optimization = "time"
-    optimization = "energy"
+    # optimization = "energy"
+    optimization = "always_phu"
 
     # cpu_freq = psutil.cpu_freq()
     # print(cpu_freq)
@@ -110,19 +111,19 @@ if __name__ == "__main__":  # import guard
     # available_hardware = hw.initilize_hardware([hw.CPU(14792899408, 1)])
     available_hardware = hw.initilize_hardware(hardware)
 
-    # ans = graph_search(
-    #     models.gpt2_prefill,
-    #     optimization,
-    #     available_hardware,
-    #     moc_sequence_length = 1400,
-    #     profiles=True,
-    #     data_collection=True,
-    # )
-
-    # print(ans)
-
-    threshold_search(
+    ans = graph_search(
         models.gpt2_prefill,
         optimization,
         available_hardware,
+        moc_sequence_length = 1400,
+        profiles=True,
+        data_collection=True,
     )
+
+    print(ans)
+
+    # threshold_search(
+    #     models.gpt2_prefill,
+    #     optimization,
+    #     available_hardware,
+    # )

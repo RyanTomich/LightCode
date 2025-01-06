@@ -191,6 +191,7 @@ class HardwareConnection:
         self.energy_cost_func = lambda n, b: n * energy_cost_per_number
         self.var_to_func = {
             "time": self.time_cost_func,
+            "always_phu": self.time_cost_func,
             "energy": self.energy_cost_func,
         }
 

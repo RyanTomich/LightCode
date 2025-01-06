@@ -14,6 +14,7 @@ import data_collection as dc
 
 node_value_selection = {
     "time": lambda node: node.time_cost,
+    "always_phu": lambda node: node.time_cost,
     "energy": lambda node: node.energy_cost,
 }
 
