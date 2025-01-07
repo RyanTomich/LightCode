@@ -47,12 +47,11 @@ class Node:
         self.input_shapes = stack.input_shapes
         self.output_shapes = stack.output_shapes
         self.time_cost = hw.Hardware.algs[algorithm].time_cost(
-            stack.input_shapes, stack.output_shapes
+            self.input_shapes, self.output_shapes
         )
         self.energy_cost = hw.Hardware.algs[algorithm].energy_cost(
-            stack.input_shapes, stack.output_shapes
+            self.input_shapes, self.output_shapes
         )
-
         self.hardware_selection = None
         self.start_time = None
 

@@ -145,10 +145,13 @@ def get_energy_profile(graph):
         graph (Graph): scheduled computational graph
     """
     delta_energy = []  # (time, energy_usage)
+    node_energy = 0
+    edge_energy = 0
 
     # Node Energy
     for node in graph.node_list:
         delta_energy.append((node.start_time, node.energy_cost))
+        node_energy += node.energy_cost
 
     num_enges = 0
 
@@ -165,7 +168,10 @@ def get_energy_profile(graph):
                 energy_change = hw.get_edge_val(graph, start_node, end_node, "energy")
 
                 delta_energy.append((start_node.start_time, energy_change))
+                edge_energy += energy_change
 
+    # print(f'node_energy: {node_energy/hw.PICO_JOULE}')
+    # print(f'edge_energy: {edge_energy/hw.PICO_JOULE}')
 
     # delta_energy.sort(key=lambda x: x[0])
 

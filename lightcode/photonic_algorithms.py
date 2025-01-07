@@ -109,6 +109,14 @@ def _task_para_node_gen(node, index, m1, m2):
     subnode.output_shapes = [[m1[0], m2[0]]]
     hw.NODE_COUNT += 1
     subnode.stack_id = hw.NODE_COUNT
+
+    subnode.time_cost = hw.Hardware.algs[subnode.algorithm].time_cost(
+        subnode.input_shapes, subnode.output_shapes
+    )
+    subnode.energy_cost = hw.Hardware.algs[subnode.algorithm].energy_cost(
+        subnode.input_shapes, subnode.output_shapes
+    )
+
     return subnode
 
     # for multiplex in _multiplex_groups(hardware, size, common_operand, unique_operands):

@@ -132,7 +132,8 @@ def initilize_hardware(hardware):
                     ),
                     (PHU, SRAM): HardwareConnection(
                         sram.clock_period + DAC_ADC_DELAY,
-                        ADC_POWER + LOCAL_WRITE + LOCAL_READ + SRAM_WRITE,
+                        # ADC_POWER + LOCAL_WRITE + LOCAL_READ + SRAM_WRITE,
+                        0,
                     ),
                 }
             )
@@ -481,7 +482,8 @@ class SRAM(Hardware):
     def __init__(self, clock_speed):
         self.algs = {
             "split": HardwareAlgorithm(
-                "split", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
+                # "split", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
+                "split", {self: (constnat(0), constnat(0))}
             )
         }
         super().__init__(clock_speed)
@@ -491,7 +493,8 @@ class Start(Hardware):
     def __init__(self, clock_speed):
         self.algs = {
             "start": HardwareAlgorithm(
-                "start", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
+                # "start", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
+                "start", {self: (constnat(0), constnat(0))}
             ),
         }
         super().__init__(clock_speed)

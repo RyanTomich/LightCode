@@ -675,6 +675,9 @@ def _matmul_graph(node):
         merge_node.input_shapes += subnode.output_shapes
 
     merge_node.parents = {subnode.stack_id for subnode in subnodes}
+
+    # assert validate.expansion_consistancy_test(node, subnodes), 'expansion did not maintain node metrics'
+
     return [split_node, merge_node] + subnodes
 
 
