@@ -150,20 +150,24 @@ def get_energy_profile(graph):
     for node in graph.node_list:
         delta_energy.append((node.start_time, node.energy_cost))
 
+    num_enges = 0
+
     # Edge energy
     for row_num in range(len(graph.adj_matrix)):
         for col_num in range(len(graph.adj_matrix)):
-            if graph.adj_matrix[row_num][col_num] is None:
-                continue
+            if graph.adj_matrix[row_num][col_num] is not None:
 
-            start_node = graph.node_list[row_num]
-            end_node = graph.node_list[col_num]
+                num_enges += 1
 
-            energy_change = hw.get_edge_val(graph, start_node, end_node, "energy")
+                start_node = graph.node_list[row_num]
+                end_node = graph.node_list[col_num]
 
-            delta_energy.append((start_node.start_time, energy_change))
+                energy_change = hw.get_edge_val(graph, start_node, end_node, "energy")
 
-    delta_energy.sort(key=lambda x: x[0])
+                delta_energy.append((start_node.start_time, energy_change))
+
+
+    # delta_energy.sort(key=lambda x: x[0])
 
     total_energy = 0
     energy_data = [(0, 0)]

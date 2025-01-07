@@ -22,7 +22,7 @@ node_value_selection = {
 # region graph_partition
 
 
-def graph_partition(graph, weight_variable="time"):
+def graph_partition(graph, weight_variable):
     """Finds the Articulation Vertices and partitions the large graph into subgraphs
     StackedGraph objects. Inclusive on both ends of range.
     graph: StackedGraph
@@ -846,7 +846,7 @@ def _get_stack_threshold(
     stacked_graph,
     stack,
     sequence_length,
-    weight_variable="time",
+    weight_variable,
     plot_len_cost=False,
     plot_arithmatic_intensity=False,
 ):
@@ -887,7 +887,7 @@ def _get_stack_threshold(
             return moc_sequence_len
 
 
-def threshold_nodes(model, stacked_graph, weight_variable="time"):
+def threshold_nodes(model, stacked_graph, weight_variable):
     count = 0
     threshold_values = {}
     for stack in stacked_graph:

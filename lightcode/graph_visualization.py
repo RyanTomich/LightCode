@@ -122,14 +122,12 @@ def adj_to_graph(
         nx.draw(
             G,
             pos,
-            with_labels=False,
+            with_labels=True,
             labels=labels,
             node_color=[colors[node] for node in G.nodes],
             edge_color="grey",
-            node_size=10,
-            width=0.4,
-            arrowsize=1,
-            font_size=6,
+            node_size=400,
+            font_size=10,
         )
     else:
         nx.draw(
@@ -141,8 +139,8 @@ def adj_to_graph(
             edge_color="grey",
             node_size=400,
             font_size=10,
-            # ax=ax,
         )
+
         ax.set_title(title)
         ax.set_aspect("equal")
 
