@@ -140,14 +140,14 @@ def expansion_consistancy_test(node, subnodes):
         return True
     else:
         # print(node.algorithm)
-        print(f'{node.time_cost=}')
-        print(f'{subnodes_time_cost=}')
-        print(f'{node.energy_cost=}')
-        print(f'{subnodes_energy_cost=}')
+        # print(f'{node.time_cost=}')
+        # print(f'{subnodes_time_cost=}')
+        # print(f'{node.energy_cost=}')
+        # print(f'{subnodes_energy_cost=}')
 
-        print(node)
+        # print(node)
         # print(type(node))
-        print(subnodes[0])
+        # print(subnodes[0])
         # print(type(subnodes[0]))
 
         # subnode_algs = set()

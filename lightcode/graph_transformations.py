@@ -676,7 +676,7 @@ def _matmul_graph(node):
 
     merge_node.parents = {subnode.stack_id for subnode in subnodes}
 
-    # assert validate.expansion_consistancy_test(node, subnodes), 'expansion did not maintain node metrics'
+    assert validate.expansion_consistancy_test(node, subnodes), 'expansion did not maintain node metrics'
 
     return [split_node, merge_node] + subnodes
 
@@ -857,7 +857,7 @@ def _get_stack_threshold(
     Determins the sequence length for which it is benificial to switch nodes in the stack
     '''
     initial_alg = None
-    for moc_sequence_len in range(4096):
+    for moc_sequence_len in range(4096): #TODO binary search this
         moc_stack = sg.Stack(
             stack.stack_id,
             stack.parents,
@@ -883,8 +883,8 @@ def _get_stack_threshold(
                 min_cost_alg = node.algorithm
 
         if moc_sequence_len == 0:
-            initial_alg = min_cost_alg
-            # print(initial_alg)
+            initial_alg = node.algorithm
+            min_cost_alg = node.algorithm
 
         if min_cost_alg != initial_alg:
             return moc_sequence_len

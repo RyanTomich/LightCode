@@ -296,13 +296,25 @@ class PHU(Hardware):
         super().__init__(clock_speed)
 
     def _phu_matmul_task_para_cycles(self, i, o):
-        num_dot_products = ten_elm(o[0])
+        # num_dot_products = ten_elm(o[0])
+        # length_dot_products = i[0][-1]
+        # phu_cycles = (
+        #     math.ceil(math.ceil(num_dot_products / self.num_numtiplex) / self.num_cores)
+        #     * length_dot_products
+        # )
+        # return phu_cycles
+
+        num_matmul = ten_elm(o[0][:-2])
+        num_dot_product_per_matmul = ten_elm(o[0][-2:])
         length_dot_products = i[0][-1]
+
         phu_cycles = (
-            math.ceil(math.ceil(num_dot_products / self.num_numtiplex) / self.num_cores)
-            * length_dot_products
+            math.ceil(math.ceil(num_dot_product_per_matmul / self.num_numtiplex) / self.num_cores)
+            * length_dot_products * num_matmul
         )
         return phu_cycles
+
+
 
     def _phu_matmul_task_para_energy(self, i, o):
         num_dot_products = ten_elm(o[0])
