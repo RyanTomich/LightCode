@@ -124,19 +124,18 @@ def graph_validate(graph):
     """flat graph validation"""
     node_list_complete(graph.node_list)
 
-def within_error(a,b,error):
-    return (abs(a-b) <= max(a,b)*error)
+
+def within_error(a, b, error):
+    return abs(a - b) <= max(a, b) * error
+
 
 def expansion_consistancy_test(node, subnodes):
-    '''
-    Within Error is only valid at high seq-len. The math.ceil of the cost func
-    causes large rounding error at low sequence lengths.
-    '''
     subnodes_time_cost = sum(subnode.time_cost for subnode in subnodes)
     subnodes_energy_cost = sum(subnode.energy_cost for subnode in subnodes)
 
-    if (within_error(subnodes_time_cost,node.time_cost,0.02) and
-        within_error(subnodes_energy_cost,node.energy_cost,0.02)):
+    if within_error(subnodes_time_cost, node.time_cost, 0.02) and within_error(
+        subnodes_energy_cost, node.energy_cost, 0.02
+    ):
         return True
     else:
         # print(node.algorithm)

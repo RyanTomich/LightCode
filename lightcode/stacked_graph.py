@@ -7,17 +7,19 @@ import pandas as pd
 import hardware as hw
 import input_validation as validate
 
+
 def get_moc_size(shape, sequence_len, moc_sequence_len):
-    '''
+    """
     stack.input_shapes, moc_sequence_len),
     replaces a numbers in a nested list
     replaces the sequence_len with moc_sequence_len and
     sequence_len+1 with moc_sequence_len+1
-    '''
+    """
+
     def recursive_replace(search, find, replacement):
-        '''
+        """
         find is a list
-        '''
+        """
         new_search = []
         for idx, val in enumerate(search):
             if not isinstance(val, int):
@@ -25,13 +27,14 @@ def get_moc_size(shape, sequence_len, moc_sequence_len):
             elif val == find[0]:
                 new_search.append(replacement)
             elif val == find[1]:
-                new_search.append(replacement+1)
+                new_search.append(replacement + 1)
             else:
                 new_search.append(val)
         return new_search
 
     # 6 will need to changes based on how dynamic graphs look
-    return recursive_replace(shape, [sequence_len, sequence_len+1], moc_sequence_len)
+    return recursive_replace(shape, [sequence_len, sequence_len + 1], moc_sequence_len)
+
 
 class Node:
     """represent one posiable algorithm for one opperation"""
@@ -94,7 +97,7 @@ class Stack:
         relay_node=None,
         opp=None,
         node_stack=None,
-        only_phu = False,
+        only_phu=False,
     ):
         self.stack_id = stack_id
         self.parents = parents
@@ -127,7 +130,7 @@ class Stack:
             if only_phu and len(node_list) > 1:
                 self.node_stack = []
                 for node in node_list:
-                    if 'phu' in node.algorithm:
+                    if "phu" in node.algorithm:
                         self.node_stack.append(node)
             else:
                 self.node_stack = node_list
@@ -309,12 +312,16 @@ class Graph:
 class StackGraph(Graph):
     """Represents a Dependancy Graph of Stack Objects"""
 
-    def __init__(self, weight_variable, stack_list=None, model=None, moc_sequence_length=None):
+    def __init__(
+        self, weight_variable, stack_list=None, model=None, moc_sequence_length=None
+    ):
         if stack_list:
             self.stack_list = stack_list
         else:
             self.raw_json = model.get_raw_json()
-            self.stack_list = self._create_stacks(weight_variable, model.sequence_length, moc_sequence_length)
+            self.stack_list = self._create_stacks(
+                weight_variable, model.sequence_length, moc_sequence_length
+            )
         super().__init__(self.stack_list, weight_variable)
         assert self.node_list == self.stack_list
 
@@ -324,7 +331,9 @@ class StackGraph(Graph):
     def __len__(self):
         return len(self.stack_list)
 
-    def _create_stacks(self, optimization, sequence_length=None, moc_sequence_length=None):
+    def _create_stacks(
+        self, optimization, sequence_length=None, moc_sequence_length=None
+    ):
         ajusted_shapes = []
         split_shift = 0
         for index, node in enumerate(self.raw_json["nodes"]):
@@ -332,7 +341,7 @@ class StackGraph(Graph):
                 self.raw_json["attrs"]["shape"][1][index + split_shift]
             )
             if "split" in node["name"]:
-                split_shift += 2  # TODO assumes split nodes are tri-split
+                split_shift += 2  # TODO assumes split nodes are tri-split for stacks
 
         stacks = []
         for index, node in enumerate(self.raw_json["nodes"]):
@@ -342,13 +351,17 @@ class StackGraph(Graph):
                 ajusted_shapes[shape_idx[0]]
                 for shape_idx in node[
                     "inputs"
-                ]  # TODO only considers parent node, not parent node output index
+                ]  # TODO only considers parent node, not parent node output index (if split non-uniform)
             ]
             output_shapes = [ajusted_shapes[index] for _ in range(num_output)]
 
             if moc_sequence_length:
-                input_shapes = get_moc_size(input_shapes, sequence_length, moc_sequence_length) # num is sequence len the json was generated at
-                output_shapes = get_moc_size(output_shapes, sequence_length, moc_sequence_length)
+                input_shapes = get_moc_size(
+                    input_shapes, sequence_length, moc_sequence_length
+                )
+                output_shapes = get_moc_size(
+                    output_shapes, sequence_length, moc_sequence_length
+                )
 
             tvm_func = None
             if "attrs" in node:
@@ -362,7 +375,7 @@ class StackGraph(Graph):
                     output_shapes,
                     tvm_func,
                     relay_node=node,
-                    only_phu = (optimization == 'always_phu')
+                    only_phu=(optimization == "always_phu"),
                 )
             )
 

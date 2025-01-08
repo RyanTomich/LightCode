@@ -90,9 +90,6 @@ def initilize_hardware(hardware):
     Args:
         hw (list): list of hardware instances of the system
     """
-
-    # MEMORY_CLOCK = 6 * 10**9  # 60**9, 6 Ghz
-
     sram = SRAM(MEMORY_CLOCK)
     hbm = HBM(MEMORY_CLOCK)
     start = Start(MEMORY_CLOCK)
@@ -105,8 +102,9 @@ def initilize_hardware(hardware):
     Hardware.intercon = {
         (HBM, SRAM): HardwareConnection(sram.clock_period, HBM_READ + SRAM_WRITE),
         (SRAM, HBM): HardwareConnection(DAC_ADC_DELAY, SRAM_READ + HBM_WRITE),
-        # start nodes
-        (Start, CPU): HardwareConnection(0, 0),
+        (Start, CPU): HardwareConnection(
+            0, 0
+        ),  # 0 because start ndoes dont represnet actual computation
         (Start, PHU): HardwareConnection(0, 0),
         (Start, SRAM): HardwareConnection(0, 0),
     }
@@ -126,10 +124,11 @@ def initilize_hardware(hardware):
         if isinstance(hw_obj, PHU):
             Hardware.intercon.update(
                 {
+                    # to prevent double coubnting after expansion step
                     (SRAM, PHU): HardwareConnection(
                         sram.clock_period + DAC_ADC_DELAY,
                         # SRAM_READ + LOCAL_WRITE + LOCAL_READ + DAC_POWER,
-                        0
+                        0,
                     ),
                     (PHU, SRAM): HardwareConnection(
                         sram.clock_period + DAC_ADC_DELAY,
@@ -297,6 +296,8 @@ class PHU(Hardware):
         super().__init__(clock_speed)
 
     def _phu_matmul_task_para_cycles(self, i, o):
+
+        # not consistant with total phu_cycles condition
         # num_dot_products = ten_elm(o[0])
         # length_dot_products = i[0][-1]
         # phu_cycles = (
@@ -310,12 +311,14 @@ class PHU(Hardware):
         length_dot_products = i[0][-1]
 
         phu_cycles = (
-            math.ceil(math.ceil(num_dot_product_per_matmul / self.num_numtiplex) / self.num_cores)
-            * length_dot_products * num_matmul
+            math.ceil(
+                math.ceil(num_dot_product_per_matmul / self.num_numtiplex)
+                / self.num_cores
+            )
+            * length_dot_products
+            * num_matmul
         )
         return phu_cycles
-
-
 
     def _phu_matmul_task_para_energy(self, i, o):
         num_dot_products = ten_elm(o[0])
@@ -496,7 +499,8 @@ class SRAM(Hardware):
         self.algs = {
             "split": HardwareAlgorithm(
                 # "split", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
-                "split", {self: (constnat(0), constnat(0))}
+                "split",
+                {self: (constnat(0), constnat(0))},
             )
         }
         super().__init__(clock_speed)
@@ -507,7 +511,8 @@ class Start(Hardware):
         self.algs = {
             "start": HardwareAlgorithm(
                 # "start", {self: (constnat(1), energy_per_cycle_func_gen(constnat(1)))}
-                "start", {self: (constnat(0), constnat(0))}
+                "start",
+                {self: (constnat(0), constnat(0))},
             ),
         }
         super().__init__(clock_speed)

@@ -21,8 +21,19 @@ node_value_selection = {
 
 # region graph_partition
 
+
 def add_mem_cost(new_node, stack_obj, graph, weight_variable):
-    # add energy weight from in_node to nodes in stack
+    """Encoporates memory cost into child node for simplifying graph
+
+    Args:
+        new_node (Stack): child stack
+        stack_obj (Stack): Original Stack
+        graph (Graoh): original Graph object of the computation
+        weight_variable (srt): What we are weighting the optimization for
+
+    Returns:
+        Stack : New Stack with parent memory node cost added
+    """
     memory_parent = set(stack_obj.parents) & graph.in_nodes
     if weight_variable == "energy" and len(memory_parent) > 0:
         stack_idx = graph.id_to_idx[stack_obj.stack_id]
@@ -31,6 +42,7 @@ def add_mem_cost(new_node, stack_obj, graph, weight_variable):
         for idx, cost in enumerate(edge_energy_cost[0]):
             new_node.node_stack[idx].energy_cost += cost
     return new_node
+
 
 def graph_partition(graph, weight_variable):
     """Finds the Articulation Vertices and partitions the large graph into subgraphs
@@ -75,7 +87,9 @@ def graph_partition(graph, weight_variable):
                 stack_obj = graph.get_node_obj(stack_id)
                 new_node = copy.deepcopy(stack_obj)
                 new_node.parents = set(new_node.parents) - graph.in_nodes
-                subgraph_stack_list.append(add_mem_cost(new_node, stack_obj, graph, weight_variable))
+                subgraph_stack_list.append(
+                    add_mem_cost(new_node, stack_obj, graph, weight_variable)
+                )
 
         sub_graph = sg.StackGraph(
             stack_list=subgraph_stack_list,
@@ -84,6 +98,7 @@ def graph_partition(graph, weight_variable):
         subgraphs.append(sub_graph)
 
     return subgraphs
+
 
 # endregion
 
@@ -492,7 +507,7 @@ def _add_in_out(original_graph, node_list):
     for node in node_list:
         all_nodes.add(node.stack_id)
         if node.algorithm != "dot_prod_phu":
-        # if 'phu' not in node.algorithm:
+            # if 'phu' not in node.algorithm:
             if (
                 node.stack_id in original_graph.id_to_idx
                 or node.stack_id + 0.1 in original_graph.id_to_idx
@@ -677,7 +692,9 @@ def _matmul_graph(node):
 
     merge_node.parents = {subnode.stack_id for subnode in subnodes}
 
-    assert validate.expansion_consistancy_test(node, subnodes), 'expansion did not maintain node metrics'
+    assert validate.expansion_consistancy_test(
+        node, subnodes
+    ), "expansion did not maintain node metrics"
 
     return [split_node, merge_node] + subnodes
 
@@ -770,7 +787,9 @@ def _get_all_out_connection_cost(stacked_graph, moc_stack):
     totals_per_node = [0] * len(moc_stack)
     for child in all_child_connections:
         for cur_node_idx, current_node in enumerate(child):
-            totals_per_node[cur_node_idx] += current_node[0]  # child stacks only have 1 node
+            totals_per_node[cur_node_idx] += current_node[
+                0
+            ]  # child stacks only have 1 node
 
     return totals_per_node
 
@@ -854,11 +873,12 @@ def _get_stack_threshold(
     plot_len_cost=False,
     plot_arithmatic_intensity=False,
 ):
-    '''
-    Determins the sequence length for which it is benificial to switch nodes in the stack
-    '''
+    """Determins the sequence length for which it is benificial to switch nodes in the stack
+    Returns:
+        dict: Threshold value: num nodes switching at value
+    """
     initial_alg = None
-    for moc_sequence_len in range(4096): #TODO binary search this
+    for moc_sequence_len in range(4096):  # TODO binary search this
         moc_stack = sg.Stack(
             stack.stack_id,
             stack.parents,
@@ -895,7 +915,7 @@ def threshold_nodes(model, stacked_graph, weight_variable):
     count = 0
     threshold_values = {}
     for stack in stacked_graph:
-        if len(stack) == 1: # nothing to optmize
+        if len(stack) == 1:  # nothing to optmize
             threshold_values[stack.stack_id] = None
         else:
             threshold_sequence_len = _get_stack_threshold(

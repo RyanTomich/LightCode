@@ -7,6 +7,9 @@ def get_photonic(subgraphs):
 
     Args:
         subgraphs (list of Graph): list of flat graphs before expansion
+
+    Returns:
+        typle: (Selected photoni, total posiable photonic)
     """
     total = 0
     selected = 0
@@ -22,8 +25,7 @@ def get_photonic(subgraphs):
             if "phu" in node.algorithm:
                 selected += 1
 
-    # print(f"Photonic Selected: {selected} / {total}")
-    return (selected , total)
+    return (selected, total)
 
 
 def get_memory_profile(graph):
@@ -124,6 +126,14 @@ def get_memory_profile(graph):
 
 
 def get_all_algorithms(graph):
+    """Returns set of all algorithms used in a graph
+
+    Args:
+        graph (Graph): singel or list of computational Graph object
+
+    Returns:
+        set: all unique algorithms
+    """
     if not isinstance(graph, list):
         graph = [graph]
 
@@ -170,9 +180,6 @@ def get_energy_profile(graph):
                 delta_energy.append((start_node.start_time, energy_change))
                 edge_energy += energy_change
 
-    # print(f'node_energy: {node_energy/hw.PICO_JOULE}')
-    # print(f'edge_energy: {edge_energy/hw.PICO_JOULE}')
-
     # delta_energy.sort(key=lambda x: x[0])
 
     total_energy = 0
@@ -185,7 +192,6 @@ def get_energy_profile(graph):
 
 
 def get_time_profile(graph):
-    """gets time spent on each node"""
     time_profile = {}
     for node in graph.node_list:
         time_profile.setdefault(node.algorithm, 0)

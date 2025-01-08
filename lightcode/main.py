@@ -22,7 +22,11 @@ def graph_search(
     profiles=True,
     data_collection=False,
 ):
-    graph = sg.StackGraph(model=model, weight_variable=optimization, moc_sequence_length = moc_sequence_length)
+    graph = sg.StackGraph(
+        model=model,
+        weight_variable=optimization,
+        moc_sequence_length=moc_sequence_length,
+    )
     stacked_subgraphs = list(gt.graph_partition(graph, weight_variable=optimization))
     flat_subgraphs = gt.pathfinding_node_selection(
         stacked_subgraphs, weight_variable=optimization
@@ -32,47 +36,25 @@ def graph_search(
         graph, expanded_flat_subgraphs, available_hardware
     )
     schedule_df = scheduled_flat_graph.create_schedule_data()
-
     validate.graph_validate(scheduled_flat_graph)
     # cg.code_gen(scheduled_flat_graph)
 
-    if data_collection:
-        # print("---------- INFO ----------")
-        # print(f"{WEIGHT_VARIABLE=}")
-        # print(f"{moc_sequence_length=}")
-        selected = dc.get_photonic(flat_subgraphs)
-        # print(
-        #     dc.get_all_algorithms(flat_subgraphs).symmetric_difference(
-        #         dc.get_all_algorithms(scheduled_flat_graph)
-        #     )
-        # )
-
-    # print(f"Makespan: {end_time} s")
-    # print(f"Number of Nodes: {len(scheduled_flat_graph.node_list)}")
-    total_energy = None
-    if profiles:
-        dram, delta_dram, sram, delta_sram = dc.get_memory_profile(scheduled_flat_graph)
-        # print(f"Net DRAM: {dram[-1][1]} bits")
-        # print(f"Net SRAM: {sram[-1][1]} bits")
-        energy_data, delta_energy, total_energy = dc.get_energy_profile(
-            scheduled_flat_graph
-        )
-        # print(f"Total Energy Consumption: {total_energy} pico-joules")
-        # print(
-            # f"time_distrabution {dc.get_time_profile(scheduled_flat_graph)} compute seconds "
-        # )
-
-    # print("---------- ---- ----------")
     ret = {
         "moc_sequence_length": moc_sequence_length,
         "Makespan": end_time,
-        "total_energy": total_energy,
-        "num_nodes": len(scheduled_flat_graph.node_list)
+        "num_nodes": len(scheduled_flat_graph.node_list),
     }
+    if profiles:
+        dram, delta_dram, sram, delta_sram = dc.get_memory_profile(scheduled_flat_graph)
+        energy_data, delta_energy, total_energy = dc.get_energy_profile(
+            scheduled_flat_graph
+        )
+        ret["total_energy"] = total_energy
 
     if data_collection:
-        ret['num_photonic'] = selected[0]
-        ret['posiable_photonic'] = selected[1]
+        selected = dc.get_photonic(flat_subgraphs)
+        ret["num_photonic"] = selected[0]
+        ret["posiable_photonic"] = selected[1]
 
     return ret
 
@@ -82,10 +64,8 @@ def threshold_search(model, optimization, available_hardware):
     node_thresholds = gt.threshold_nodes(model, graph, weight_variable=optimization)
     thresholds = {}
     for node, threshold in node_thresholds.items():
-        thresholds[threshold] = thresholds.get(threshold,0) + 1
-        # if threshold != None:
-            # print(f"{node}: {threshold}")
-    print(thresholds)
+        thresholds[threshold] = thresholds.get(threshold, 0) + 1
+    return thresholds
 
 
 if __name__ == "__main__":  # import guard
@@ -108,22 +88,22 @@ if __name__ == "__main__":  # import guard
     hardware.append(hw.CPU(CPU_AVERAGE_CLOCK, 1))
     hardware.append(hw.PHU(PHU_MIN_CLOCK, 1, 20))
 
-    # available_hardware = hw.initilize_hardware([hw.CPU(14792899408, 1)])
     available_hardware = hw.initilize_hardware(hardware)
 
     ans = graph_search(
         models.gpt2_prefill,
         optimization,
         available_hardware,
-        moc_sequence_length = 1400,
+        moc_sequence_length=1400,
         profiles=True,
         data_collection=True,
     )
 
-    print(ans)
+    thresholds = threshold_search(
+        models.gpt2_prefill,
+        optimization,
+        available_hardware,
+    )
 
-    # threshold_search(
-    #     models.gpt2_prefill,
-    #     optimization,
-    #     available_hardware,
-    # )
+    print(ans)
+    print(thresholds)
