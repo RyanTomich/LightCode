@@ -21,6 +21,16 @@ node_value_selection = {
 
 # region graph_partition
 
+def add_mem_cost(new_node, stack_obj, graph, weight_variable):
+    # add energy weight from in_node to nodes in stack
+    memory_parent = set(stack_obj.parents) & graph.in_nodes
+    if weight_variable == "energy" and len(memory_parent) > 0:
+        stack_idx = graph.id_to_idx[stack_obj.stack_id]
+        parent_idx = graph.id_to_idx[memory_parent.pop()]
+        edge_energy_cost = graph.adj_matrix[parent_idx][stack_idx]
+        for idx, cost in enumerate(edge_energy_cost[0]):
+            new_node.node_stack[idx].energy_cost += cost
+    return new_node
 
 def graph_partition(graph, weight_variable):
     """Finds the Articulation Vertices and partitions the large graph into subgraphs
@@ -37,6 +47,7 @@ def graph_partition(graph, weight_variable):
         if scatter_stack and (scatter_stack.stack_id in stack.parents):
             graph.residual.add(stack.stack_id)
 
+    # Sepperate into groups of nodes that can be part of a partition
     groups = list(graph.get_node_groups(asap=False))
     validate.group_validate(graph, groups)
     subgraphs = []
@@ -64,17 +75,7 @@ def graph_partition(graph, weight_variable):
                 stack_obj = graph.get_node_obj(stack_id)
                 new_node = copy.deepcopy(stack_obj)
                 new_node.parents = set(new_node.parents) - graph.in_nodes
-
-                # add energy weight from in_node to nodes in stack
-                memory_parent = set(stack_obj.parents) & graph.in_nodes
-                if weight_variable == "energy" and len(memory_parent) > 0:
-                    stack_idx = graph.id_to_idx[stack_id]
-                    parent_idx = graph.id_to_idx[memory_parent.pop()]
-                    edge_energy_cost = graph.adj_matrix[parent_idx][stack_idx]
-                    for idx, cost in enumerate(edge_energy_cost[0]):
-                        new_node.node_stack[idx].energy_cost += cost
-
-                subgraph_stack_list.append(new_node)
+                subgraph_stack_list.append(add_mem_cost(new_node, stack_obj, graph, weight_variable))
 
         sub_graph = sg.StackGraph(
             stack_list=subgraph_stack_list,
@@ -83,7 +84,6 @@ def graph_partition(graph, weight_variable):
         subgraphs.append(sub_graph)
 
     return subgraphs
-
 
 # endregion
 
@@ -492,6 +492,7 @@ def _add_in_out(original_graph, node_list):
     for node in node_list:
         all_nodes.add(node.stack_id)
         if node.algorithm != "dot_prod_phu":
+        # if 'phu' not in node.algorithm:
             if (
                 node.stack_id in original_graph.id_to_idx
                 or node.stack_id + 0.1 in original_graph.id_to_idx

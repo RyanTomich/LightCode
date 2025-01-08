@@ -128,7 +128,8 @@ def initilize_hardware(hardware):
                 {
                     (SRAM, PHU): HardwareConnection(
                         sram.clock_period + DAC_ADC_DELAY,
-                        SRAM_READ + LOCAL_WRITE + LOCAL_READ + DAC_POWER,
+                        # SRAM_READ + LOCAL_WRITE + LOCAL_READ + DAC_POWER,
+                        0
                     ),
                     (PHU, SRAM): HardwareConnection(
                         sram.clock_period + DAC_ADC_DELAY,
