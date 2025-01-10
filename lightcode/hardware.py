@@ -537,7 +537,7 @@ class GPU(TuringComplete):
 
     def get_FLOP_per_cycle_per_tensor_core(self, TFLOPS_on_tensor_core):
         tot_tensor_cores = self.num_cores * self.TC_per_SM
-        FLOPS_per_tensor_core = TFLOPS_on_tensor_core / tot_tensor_cores
+        FLOPS_per_tensor_core = TFLOPS_on_tensor_core / tot_tensor_cores * 1_000_000_000_000
         FLOP_per_cycle_per_tensor_core = FLOPS_per_tensor_core / self.clock_speed
         return(FLOP_per_cycle_per_tensor_core)
 

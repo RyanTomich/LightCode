@@ -94,7 +94,7 @@ if __name__ == "__main__":  # import guard
     SM_per_TPC = 2                  # Streaming multiprocessors / Texture Processing Cluster
     fp32_CUDA_cores_per_SM = 128    # fp32_CUDA_cores / Streaming multiprocessor
     TC_per_SM = 4                   # Tensor Cores / Streaming multiprocessor
-    # hardware.append(hw.GPU(GPU_FP32_CLOCK, GPC, TPC_per_GPC, SM_per_TPC, fp32_CUDA_cores_per_SM, TC_per_SM))
+    hardware.append(hw.GPU(GPU_FP32_CLOCK, GPC, TPC_per_GPC, SM_per_TPC, fp32_CUDA_cores_per_SM, TC_per_SM))
 
     available_hardware = hw.initilize_hardware(hardware)
 
