@@ -71,8 +71,8 @@ def threshold_search(model, optimization, available_hardware):
 if __name__ == "__main__":  # import guard
 
     # optimization = "time"
-    # optimization = "energy"
-    optimization = "always_phu"
+    optimization = "energy"
+    # optimization = "always_phu"
 
     # cpu_freq = psutil.cpu_freq()
     # print(cpu_freq)
@@ -81,12 +81,20 @@ if __name__ == "__main__":  # import guard
     CPU_MAX_CLOCK = 5.0875 * 10**9  # 5.0875 e+9 5Ghz
     CPU_AVERAGE_CLOCK = 3.208 * 10**9  # 60**9, 6
     PHU_MIN_CLOCK = 9.7 * 10**9  # 100**9, 10 Ghz
+    GPU_FP32_CLOCK = 1.98 * 10**9 #1.98 GHz
 
     hardware = []
     hw.Hardware._hardware_reset()
     # hardware.append(hw.CPU(CPU_MAX_CLOCK, 1))
     hardware.append(hw.CPU(CPU_AVERAGE_CLOCK, 1))
-    hardware.append(hw.PHU(PHU_MIN_CLOCK, 1, 20))
+    # hardware.append(hw.PHU(PHU_MIN_CLOCK, 1, 20))
+
+    GPC = 8                         # Graphical Processing Clusters
+    TPC_per_GPC = 9                 # Texture Processing Clusters/Graphical Processing Cluster
+    SM_per_TPC = 2                  # Streaming multiprocessors / Texture Processing Cluster
+    fp32_CUDA_cores_per_SM = 128    # fp32_CUDA_cores / Streaming multiprocessor
+    TC_per_SM = 4                   # Tensor Cores / Streaming multiprocessor
+    # hardware.append(hw.GPU(GPU_FP32_CLOCK, GPC, TPC_per_GPC, SM_per_TPC, fp32_CUDA_cores_per_SM, TC_per_SM))
 
     available_hardware = hw.initilize_hardware(hardware)
 
@@ -99,11 +107,11 @@ if __name__ == "__main__":  # import guard
         data_collection=True,
     )
 
-    thresholds = threshold_search(
-        models.gpt2_prefill,
-        optimization,
-        available_hardware,
-    )
+    # thresholds = threshold_search(
+    #     models.gpt2_prefill,
+    #     optimization,
+    #     available_hardware,
+    # )
 
     print(ans)
-    print(thresholds)
+    # print(thresholds)
