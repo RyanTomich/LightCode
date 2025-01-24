@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "Installation"
+title: "Architecture"
 nav_order: 3
 ---
 

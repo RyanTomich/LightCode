@@ -7,8 +7,6 @@ author: "Ryan Tomich"
 date: 2025-01-23
 ---
 
-# Lightcode
-
 LightCode is a compiler optimization framework designed to evaluate the speed and efficiency of multi-target compilation of LLMs to photonic and classic computers together.
 
 First, LightCode utilizes TVM Relay to extract the computational graph of HuggingFace models. Then, LightCode transforms the graph to make a custom Intermediate Representation (IR) called a stacked graph.
@@ -21,5 +19,6 @@ Additionally, LightCode has a sequence-length search functionality. Given the st
 
 - [Installation Guide](installation.md)
 - [Architecture](architecture.md)
+- [How-To Guides](how_to.md)
 
 ## Where LightCode is going
