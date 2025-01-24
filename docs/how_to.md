@@ -6,10 +6,16 @@ nav_order: 4
 
 # Generating Relay Conputational Graph
 
+## setup
+Switch your conda enviroment with
+```bash
+conda activate tvm_conda
+```
+
 ## Importing a model to pytorch
 Running inference on pytorch
 
-``` Python
+```python
 import torch
 import relay as lc_relay
 
@@ -36,7 +42,7 @@ print(generated_text)
 ## Model to Relay
 
 ### Prefill Stage
-``` Python
+```python
 save_name = model_name.split("/", 1)[-1]
 lc_relay.onnx_export_prefill(model, device, save_name)
 
@@ -61,7 +67,7 @@ After the weight files are removed, you should have 2 files remaining.
 
 ### Decoder Stage
 This is significantly more difficult and may require more custom functions to extract depending on your model.
-```Python
+```python
 save_name = model_name.split("/", 1)[-1]
 lc_relay.onnx_export_llama_decoder(model, device, save_name)
 
@@ -83,7 +89,7 @@ After the weight files are removed, you should have 2 files remaining.
 ### Testing and cleanup
 If the prefill and decoder stages are done together, you can validate results are consistent by comparing the pytorch inference to the TVM Relay inference. We are running Greedy[^1], so they should be the same.
 
-``` Python
+```python
 generated_text, last_token_id, past_key_values = lc_relay.generate(
     prompt, tokenizer, num_tokens=5
 )
@@ -95,7 +101,7 @@ next_token_id, kv_cache = lc_relay.run_relay_decoder(decoder_lib, next_token_id,
 We used TVM Rela IR to extract the conputational graphs of the meta-llama/Llama-2-7b-hf model.
 
 ## The code, all together.
-``` Python
+```python
 import torch
 import relay as lc_relay
 
