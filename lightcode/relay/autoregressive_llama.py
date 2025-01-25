@@ -1,7 +1,7 @@
-'''
+"""
 [FAIL] Killed on loading param step
 env: tvm_conda
-'''
+"""
 
 import torch
 import os
@@ -93,7 +93,7 @@ def generate(prompt, tokenizer, num_tokens=10):
 
 # Exporting to onnx
 def onnx_export_prefill(model):
-    onnx_path =  "../models/llama_prefill.onnx"
+    onnx_path = "../models/llama_prefill.onnx"
     if os.path.exists(onnx_path):
         print("already a {onnx_path}")
         return
@@ -339,7 +339,7 @@ def run_relay_decoder(lib, last_token_id, kv_cache):
 
 
 def save_relay(name, lib):
-    graph_json_path = f'{name}_graph.json'
+    graph_json_path = f"{name}_graph.json"
     with open(graph_json_path, "w") as f:
         f.write(lib.get_graph_json())
 

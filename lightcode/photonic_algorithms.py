@@ -2,8 +2,8 @@
 Functions for expanding photnic matrix multiplication
 """
 
-import hardware as hw
-import stacked_graph as sg
+from lightcode import hardware
+from lightcode import stack_graph
 
 
 # Create Dot Products
@@ -66,7 +66,7 @@ def nd_tensor_to_matx(m1, m2, preamble=()):
 # Expansion Functinos
 
 
-def _multiplex_groups(hardware, size, common_operand, unique_operands):
+def _multiplex_groups(local_hardware, size, common_operand, unique_operands):
     """group nodes into max multiplex
 
     Args:
@@ -77,16 +77,16 @@ def _multiplex_groups(hardware, size, common_operand, unique_operands):
     Yields:
         tupele: (size, common, list(unique))
     """
-    full = int(len(unique_operands) / hardware.num_numtiplex)
+    full = int(len(unique_operands) / local_hardware.num_numtiplex)
     start = 0
-    end = hardware.num_numtiplex
+    end = local_hardware.num_numtiplex
     for _ in range(full):
         yield (size, common_operand, unique_operands[start:end])
         start = end
-        end += hardware.num_numtiplex
+        end += local_hardware.num_numtiplex
 
     assert end >= len(unique_operands)
-    if len(unique_operands) % hardware.num_numtiplex:
+    if len(unique_operands) % local_hardware.num_numtiplex:
         assert end > len(unique_operands)
         yield (size, common_operand, unique_operands[start:])
 
@@ -101,28 +101,28 @@ def _task_para_node_gen(node, index, m1, m2):
     """
     assert len(m1) == len(m2) == 2  # two dimentions
 
-    hardware = hw.Hardware.algs[node.algorithm].hardware
-    subnode = sg.Node("matrix_matrix_phu", node.stack)
+    local_hardware = hardware.Hardware.algs[node.algorithm].alg_hardware
+    subnode = stack_graph.Node("matrix_matrix_phu", node.stack)
     subnode.parents = [node.stack_id - 0.1]
     subnode.index = index
     subnode.input_shapes = [list(m1), list(m2)]
     subnode.output_shapes = [[m1[0], m2[0]]]
-    hw.NODE_COUNT += 1
-    subnode.stack_id = hw.NODE_COUNT
+    hardware.NODE_COUNT += 1
+    subnode.stack_id = hardware.NODE_COUNT
 
-    subnode.time_cost = hw.Hardware.algs[subnode.algorithm].time_cost(
+    subnode.time_cost = hardware.Hardware.algs[subnode.algorithm].time_cost(
         subnode.input_shapes, subnode.output_shapes
     )
-    subnode.energy_cost = hw.Hardware.algs[subnode.algorithm].energy_cost(
+    subnode.energy_cost = hardware.Hardware.algs[subnode.algorithm].energy_cost(
         subnode.input_shapes, subnode.output_shapes
     )
 
     return subnode
 
-    # for multiplex in _multiplex_groups(hardware, size, common_operand, unique_operands):
+    # for multiplex in _multiplex_groups(local_hardware, size, common_operand, unique_operands):
     #     size, common_operand, unique_subset = multiplex
 
-    #     subnode = sg.Node("dot_prod_phu", node.stack)
+    #     subnode = stacked_graph.Node("dot_prod_phu", node.stack)
     #     subnode.parents = [node.stack_id - 0.1]
 
     #     subnode.input_shapes = [
@@ -130,8 +130,8 @@ def _task_para_node_gen(node, index, m1, m2):
     #     ]  # multiplex vectors + common vector
     #     subnode.output_shapes = [[1, len(unique_subset) + 1]]
 
-    #     hw.NODE_COUNT += 1
-    #     subnode.stack_id = hw.NODE_COUNT
+    #     hardware.NODE_COUNT += 1
+    #     subnode.stack_id = hardware.NODE_COUNT
     #     subnodes.append(subnode)
 
     # return subnodes

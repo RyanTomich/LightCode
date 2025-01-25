@@ -214,7 +214,7 @@ class HardwareAlgorithm:
     def __init__(self, opp, cost):  # hardware: (time, energy)
         self.opp = opp
         self.cost = cost
-        self.hardware = next(
+        self.alg_hardware = next(
             iter(cost.keys())
         )  # will need to change for multi hardware algorithms
 
@@ -249,6 +249,7 @@ class Hardware:
         Hardware._universal_hardware_ID = 0
         Hardware.algs = {}
         Hardware.intercon = {}
+
 
 class PHU(Hardware):
     def __init__(self, clock_speed, num_cores, num_multiplex):
@@ -435,6 +436,7 @@ class TuringComplete(Hardware):
     def _mean_cycles(self, i, o):
         return (i[0][-1] + 1) * i[0][-2]
 
+
 class CPU(TuringComplete):
     def __init__(self, clock_speed, num_cores):
         self.num_cores = num_cores
@@ -442,7 +444,12 @@ class CPU(TuringComplete):
         self.algs = {
             "add": HardwareAlgorithm(
                 "add",
-                {self: (self._cpu_add_cycles, energy_per_cycle_func_gen(self._cpu_add_cycles))},
+                {
+                    self: (
+                        self._cpu_add_cycles,
+                        energy_per_cycle_func_gen(self._cpu_add_cycles),
+                    )
+                },
             ),
             "matmul": HardwareAlgorithm(
                 "matmul", {self: (self._cpu_matmul_cycles, self._cpu_matmul_energy)}
@@ -494,16 +501,34 @@ class CPU(TuringComplete):
 
 
 class GPU(TuringComplete):
-    def __init__(self, clock_speed, GPC, TPC_per_GPC, SM_per_TPC, fp32_CUDA_cores_per_SM, TC_per_SM):
+    def __init__(
+        self,
+        clock_speed,
+        GPC,
+        TPC_per_GPC,
+        SM_per_TPC,
+        fp32_CUDA_cores_per_SM,
+        TC_per_SM,
+    ):
         self.clock_speed = clock_speed
         self.mac_energy = GPU_MAC
         self.GPC = GPC  # Graphical Processing Clusters
-        self.TPC_per_GPC = TPC_per_GPC  # Texture Processing Clusters/Graphical Processing Cluster
-        self.SM_per_TPC = SM_per_TPC    # Streaming multiprocessors / Texture Processing Cluster
-        self.fp32_CUDA_cores_per_SM = fp32_CUDA_cores_per_SM    # fp32_CUDA_cores / Streaming multiprocessor
+        self.TPC_per_GPC = (
+            TPC_per_GPC  # Texture Processing Clusters/Graphical Processing Cluster
+        )
+        self.SM_per_TPC = (
+            SM_per_TPC  # Streaming multiprocessors / Texture Processing Cluster
+        )
+        self.fp32_CUDA_cores_per_SM = (
+            fp32_CUDA_cores_per_SM  # fp32_CUDA_cores / Streaming multiprocessor
+        )
         self.TC_per_SM = TC_per_SM  # Tensor Cores / Streaming multiprocessor
-        self.num_cores = SM_per_TPC * TPC_per_GPC * GPC # number of SM as "num_core" equivilents
-        self.FLOP_per_cycle_per_tensor_core = self.get_FLOP_per_cycle_per_tensor_core(494.7)
+        self.num_cores = (
+            SM_per_TPC * TPC_per_GPC * GPC
+        )  # number of SM as "num_core" equivilents
+        self.FLOP_per_cycle_per_tensor_core = self.get_FLOP_per_cycle_per_tensor_core(
+            494.7
+        )
         self.algs = {
             "matmul_gpu": HardwareAlgorithm(
                 "matmul",
@@ -533,14 +558,15 @@ class GPU(TuringComplete):
                 },
             ),
         }
-        super().__init__(clock_speed) # must be at the end to initialize hardware
+        super().__init__(clock_speed)  # must be at the end to initialize hardware
 
     def get_FLOP_per_cycle_per_tensor_core(self, TFLOPS_on_tensor_core):
         tot_tensor_cores = self.num_cores * self.TC_per_SM
-        FLOPS_per_tensor_core = TFLOPS_on_tensor_core / tot_tensor_cores * 1_000_000_000_000
+        FLOPS_per_tensor_core = (
+            TFLOPS_on_tensor_core / tot_tensor_cores * 1_000_000_000_000
+        )
         FLOP_per_cycle_per_tensor_core = FLOPS_per_tensor_core / self.clock_speed
-        return(FLOP_per_cycle_per_tensor_core)
-
+        return FLOP_per_cycle_per_tensor_core
 
     def _gpu_matmul_cycles(self, i, o):
         num_matmul = ten_elm(o[0][:-2])
@@ -548,8 +574,8 @@ class GPU(TuringComplete):
         num_dot_prod = num_matmul * num_dot_product_per_matmul
         length_dot_products = i[0][-1]
         tot_tensor_cores = self.num_cores * self.TC_per_SM
-        gpu_cycles = (
-            math.ceil(num_dot_prod/tot_tensor_cores) * math.ceil(length_dot_products/self.FLOP_per_cycle_per_tensor_core)
+        gpu_cycles = math.ceil(num_dot_prod / tot_tensor_cores) * math.ceil(
+            length_dot_products / self.FLOP_per_cycle_per_tensor_core
         )
         return gpu_cycles
 
@@ -557,6 +583,7 @@ class GPU(TuringComplete):
         num_dot_products = ten_elm(o[0])
         length_dot_products = i[0][-1]
         return num_dot_products * length_dot_products * self.mac_energy
+
 
 class HBM(Hardware):
     def __init__(self, clock_speed):

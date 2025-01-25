@@ -1,4 +1,4 @@
-'''
+"""
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -33,14 +33,15 @@ outputs = compiled_model.generate(
 
 generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 print(generated_text)
-'''
+"""
 
 import torch
 from transformers import LlamaForCausalLM
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from torch.fx import symbolic_trace
 
-class CustomMatMul():
+
+class CustomMatMul:
     def __init__(self, size_threshold):
         self.size_threshold = size_threshold
 

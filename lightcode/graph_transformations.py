@@ -6,11 +6,11 @@ import copy
 import heapq
 import numpy as np
 
-import stacked_graph as sg
-import input_validation as validate
-import hardware as hw
-import photonic_algorithms as pa
-import data_collection as dc
+from lightcode import stack_graph
+from lightcode import validation
+from lightcode import hardware
+from lightcode import photonic_algorithms
+from lightcode import data_collection
 
 node_value_selection = {
     "time": lambda node: node.time_cost,
@@ -61,13 +61,15 @@ def graph_partition(graph, weight_variable):
 
     # Sepperate into groups of nodes that can be part of a partition
     groups = list(graph.get_node_groups(asap=False))
-    validate.group_validate(graph, groups)
+    validation.group_validate(graph, groups)
     subgraphs = []
 
     for group in groups:
 
-        start_stack = sg.Stack(0, set(), [[]], [[]], None, opp="start", node_stack=[])
-        start_stack.node_stack.append(sg.Node("start", start_stack))
+        start_stack = stack_graph.Stack(
+            0, set(), [[]], [[]], None, opp="start", node_stack=[]
+        )
+        start_stack.node_stack.append(stack_graph.Node("start", start_stack))
 
         # replace parents if not satisfied in group. handles loads and residuals
         first_stacks = []
@@ -91,7 +93,7 @@ def graph_partition(graph, weight_variable):
                     add_mem_cost(new_node, stack_obj, graph, weight_variable)
                 )
 
-        sub_graph = sg.StackGraph(
+        sub_graph = stack_graph.StackGraph(
             stack_list=subgraph_stack_list,
             weight_variable=graph.weight_variable,
         )
@@ -360,14 +362,16 @@ def pathfinding_node_selection(subgraphs, weight_variable):
 
             # for flat subgraph
             subgraph_nodes_list.append(
-                sg.Node(
+                stack_graph.Node(
                     selected_node.algorithm,
                     subgraph.get_node_obj(subgraph_stack.stack_id),
                 )
             )
 
         # Selection can be based on any weight_variable, but everything afterwards is time based.
-        flat_subgraphs.append(sg.Graph(subgraph_nodes_list, weight_variable="time"))
+        flat_subgraphs.append(
+            stack_graph.Graph(subgraph_nodes_list, weight_variable="time")
+        )
 
     return flat_subgraphs
 
@@ -422,7 +426,9 @@ def _scheduling_dijkstra(graph, available_hardware):
             if neighbor not in visited and indegree[neighbor] == 0:
                 neighbor_node = graph.node_list[neighbor]
 
-                hardware_type = hw.Hardware.algs[neighbor_node.algorithm].hardware
+                hardware_type = hardware.Hardware.algs[
+                    neighbor_node.algorithm
+                ].alg_hardware
 
                 parent_end = [end_times[parent] for parent in neighbor_node.parents]
                 max_parent_end = max(parent_end)
@@ -538,7 +544,7 @@ def _add_in_out(original_graph, node_list):
         new_node.parents = new_parents
         node_list.append(new_node)
 
-    validate.node_list_complete(node_list)
+    validation.node_list_complete(node_list)
 
 
 def _schedule_in_out(graph, available_hardware):
@@ -612,10 +618,10 @@ def schdeule_nodes(original_graph, subgraphs, available_hardware):
         )
 
     _add_residual(original_graph, full_node_list)
-    validate.merge_i_o(full_node_list, original_graph)
+    validation.merge_i_o(full_node_list, original_graph)
     _add_in_out(original_graph, full_node_list)
 
-    graph = sg.Graph(full_node_list, weight_variable="time")
+    graph = stack_graph.Graph(full_node_list, weight_variable="time")
     _schedule_in_out(graph, available_hardware)
 
     for node in graph.node_list:
@@ -653,10 +659,10 @@ def _group_dot_products(m1, m2):
     """
     groups = {}
     if m1[-2] <= m2[-2]:  # a <= c in axb @ bxc
-        for dot_prod in pa.nd_tensor_to_dot(m1, m2):
+        for dot_prod in photonic_algorithms.nd_tensor_to_dot(m1, m2):
             groups.setdefault(dot_prod[0], (dot_prod[2], []))[1].append(dot_prod[1])
     else:  # a > c
-        for dot_prod in pa.nd_tensor_to_dot(m1, m2):
+        for dot_prod in photonic_algorithms.nd_tensor_to_dot(m1, m2):
             groups.setdefault(dot_prod[1], (dot_prod[2], []))[1].append(dot_prod[0])
     return groups
 
@@ -669,18 +675,18 @@ def _matmul_graph(node):
     """
     m1, m2 = node.input_shapes
     # dot_prod_groups = _group_dot_products(m1, m2)
-    mtrx_mtrx = list(pa.nd_tensor_to_matx(tuple(m1), tuple(m2)))
+    mtrx_mtrx = list(photonic_algorithms.nd_tensor_to_matx(tuple(m1), tuple(m2)))
 
-    split_node = sg.Node("split", node.stack)
+    split_node = stack_graph.Node("split", node.stack)
     split_node.stack_id -= 0.1
     split_node.output_shapes = []
 
-    merge_node = sg.Node("split", node.stack)
+    merge_node = stack_graph.Node("split", node.stack)
     merge_node.stack_id += 0.1
     merge_node.parents = {}
     merge_node.input_shapes = []
 
-    node_expansion_func = pa.node_expansion[node.algorithm]
+    node_expansion_func = photonic_algorithms.node_expansion[node.algorithm]
 
     subnodes = []
     for mtrx_product in mtrx_mtrx:
@@ -692,7 +698,7 @@ def _matmul_graph(node):
 
     merge_node.parents = {subnode.stack_id for subnode in subnodes}
 
-    assert validate.expansion_consistancy_test(
+    assert validation.expansion_consistancy_test(
         node, subnodes
     ), "expansion did not maintain node metrics"
 
@@ -728,17 +734,19 @@ def expand_nodes(flat_subgraphs):
 
         # add replacement nodes
         for node_idx, node in enumerate(subgraph.node_list):
-            if node.algorithm in pa.node_expansion:
+            if node.algorithm in photonic_algorithms.node_expansion:
                 replacement_nodes = _matmul_graph(node)
                 new_subgraph_node_list += replacement_nodes
                 _update_children(subgraph, node_idx)
 
         # add rest, some have been modified
         for node_idx, node in enumerate(subgraph.node_list):
-            if node.algorithm not in pa.node_expansion:
+            if node.algorithm not in photonic_algorithms.node_expansion:
                 new_subgraph_node_list.append(node)
 
-        new_subgraphs.append(sg.Graph(new_subgraph_node_list, subgraph.weight_variable))
+        new_subgraphs.append(
+            stack_graph.Graph(new_subgraph_node_list, subgraph.weight_variable)
+        )
 
     return new_subgraphs
 
@@ -811,11 +819,11 @@ def _get_all_out_connection_cost(stacked_graph, moc_stack):
 
 #     threshold = np.inf # start with never switching to electronic
 #     for moc_sequence_len in range(4096):  # 4096 is llama max seq_len
-#         moc_stack = sg.Stack(
+#         moc_stack = stacked_graph.Stack(
 #             stack.stack_id,
 #             stack.parents,
-#             sg.get_moc_size(stack.input_shapes, sequence_length, moc_sequence_len),
-#             sg.get_moc_size(stack.output_shapes, sequence_length, moc_sequence_len),
+#             stacked_graph.get_moc_size(stack.input_shapes, sequence_length, moc_sequence_len),
+#             stacked_graph.get_moc_size(stack.output_shapes, sequence_length, moc_sequence_len),
 #             stack.tvm_func,
 #             relay_node=stack.relay_node,
 #         )
@@ -844,7 +852,7 @@ def _get_all_out_connection_cost(stacked_graph, moc_stack):
 #                 electronic.append(total_cost)
 
 #         sequence_len.append(moc_sequence_len)
-#         intensity = hw.arithmatic_intensity_matmul(
+#         intensity = hardware.arithmatic_intensity_matmul(
 #             moc_stack.input_shapes, moc_stack.output_shapes
 #         )
 #         arithmatic_intensity.append(intensity)
@@ -855,10 +863,10 @@ def _get_all_out_connection_cost(stacked_graph, moc_stack):
 #                 break
 
 #     if plot_len_cost:
-#         dc.plot_len_cost(sequence_len, algs, weight_variable)
+#         data_collection.plot_len_cost(sequence_len, algs, weight_variable)
 
 #     if plot_arithmatic_intensity:
-#         dc.plot_arithmatic_intensity(
+#         data_collection.plot_arithmatic_intensity(
 #             arithmatic_intensity, [p - e for p, e in zip(photonic, electronic)]
 #         )
 
@@ -879,11 +887,15 @@ def _get_stack_threshold(
     """
     initial_alg = None
     for moc_sequence_len in range(4096):  # TODO binary search this
-        moc_stack = sg.Stack(
+        moc_stack = stack_graph.Stack(
             stack.stack_id,
             stack.parents,
-            sg.get_moc_size(stack.input_shapes, sequence_length, moc_sequence_len),
-            sg.get_moc_size(stack.output_shapes, sequence_length, moc_sequence_len),
+            stack_graph.get_moc_size(
+                stack.input_shapes, sequence_length, moc_sequence_len
+            ),
+            stack_graph.get_moc_size(
+                stack.output_shapes, sequence_length, moc_sequence_len
+            ),
             stack.tvm_func,
             relay_node=stack.relay_node,
         )

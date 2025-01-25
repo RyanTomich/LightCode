@@ -1,6 +1,6 @@
-import input_validation as validate
 import re
 import math
+from lightcode import validation
 
 # Code format
 header = f"|start_time |---|hardware|---|core|---|________________function________________|---|_________opp________|---|_io___\n\n"
@@ -114,4 +114,4 @@ def code_gen(scheduled_flat_graph):
             file.write("\n")
 
     schedule_df = scheduled_flat_graph.create_schedule_data(write=True)
-    validate.schedule_validate(schedule_df)
+    validation.schedule_validate(schedule_df)

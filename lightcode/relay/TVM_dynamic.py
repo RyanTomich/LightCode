@@ -1,11 +1,10 @@
-'''
+"""
 [ERROR] Check failed: (pval != nullptr) is false: Cannot allocate memory symbolic tensor shape [1, ?]
 
 Fails because Relay does not support dynamic memory allocation. Need to use Relax for dynamicim
 
 env: tvm_conda
-'''
-
+"""
 
 import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
@@ -33,9 +32,12 @@ dummy_input_ids = inputs["input_ids"]
 attention_mask = inputs["attention_mask"]
 
 torch.onnx.export(
-    model, dummy_input_ids, "gpt2.onnx",
-    input_names=['input'], output_names=['output'],
-    dynamic_axes={'input': {1: 'sequence_length'}}
+    model,
+    dummy_input_ids,
+    "gpt2.onnx",
+    input_names=["input"],
+    output_names=["output"],
+    dynamic_axes={"input": {1: "sequence_length"}},
 )
 
 onnx_model = onnx.load("gpt2.onnx")
@@ -60,14 +62,17 @@ target = "llvm"
 with tvm.transform.PassContext(opt_level=0, config=config):
     lib = relay.build(mod, target=target, params=params)
 
-'''[ERROR] Check failed: (pval != nullptr) is false: Cannot allocate memory symbolic tensor shape [1, ?]'''
+"""[ERROR] Check failed: (pval != nullptr) is false: Cannot allocate memory symbolic tensor shape [1, ?]"""
 
 
 dev = tvm.cpu(0)
 module = graph_executor.GraphModule(lib["default"](dev))
 
 import numpy as np
-input_data = np.random.randn(1, 20).astype("int64")  # Example input with sequence length of 20
+
+input_data = np.random.randn(1, 20).astype(
+    "int64"
+)  # Example input with sequence length of 20
 
 module.set_input("input", input_data)
 module.run()

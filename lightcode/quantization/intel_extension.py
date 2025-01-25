@@ -5,7 +5,6 @@
 # from intel_extension_for_pytorch.quantization import prepare, convert
 
 
-
 # # Load model and tokenizer
 # model_name = 'Llama-2-7b-hf'
 # preamble = 'meta-llama'
@@ -17,10 +16,10 @@
 # # Put model in evaluation mode
 # model.eval()
 
-'''
+"""
 https://intel.github.io/intel-extension-for-pytorch/cpu/latest/tutorials/examples.html
 
-'''
+"""
 
 import torch
 import intel_extension_for_pytorch as ipex
@@ -32,6 +31,7 @@ from transformers import (
 )
 
 import sys
+
 sys.setrecursionlimit(5000)  # Example: set the limit to 2000
 
 
@@ -200,7 +200,6 @@ torch.onnx.export(
 #     print(gen_text, total_new_tokens, flush=True)
 
 
-
-'''
+"""
 Hits the recursion limit at 5000
-'''
+"""

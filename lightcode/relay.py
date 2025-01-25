@@ -1,4 +1,3 @@
-
 import torch
 import os
 
@@ -54,7 +53,7 @@ def decoder_step(model, device, last_token_id, past_key_values):
     return logits, past_key_values
 
 
-def generate(model, prompt, tokenizer, device, num_tokens = 10):
+def generate(model, prompt, tokenizer, device, num_tokens=10):
     inputs = tokenizer(prompt, return_tensors="pt")
     input_ids = inputs["input_ids"].to(device)
     generated_sequence = input_ids.tolist()[0]
@@ -66,7 +65,9 @@ def generate(model, prompt, tokenizer, device, num_tokens = 10):
 
     # decoder
     for _ in range(num_tokens):
-        logits, past_key_values = decoder_step(model, device, last_token_id, past_key_values)
+        logits, past_key_values = decoder_step(
+            model, device, last_token_id, past_key_values
+        )
         last_token_id = torch.argmax(logits[:, -1, :], dim=-1).item()
         generated_sequence.append(last_token_id)
 
@@ -76,13 +77,16 @@ def generate(model, prompt, tokenizer, device, num_tokens = 10):
 
 # Exporting to onnx
 def onnx_export_prefill(model, device, save_name):
-    onnx_path =  f"models/{save_name}_prefill.onnx"
-    if os.path.exists(onnx_path): # save time if already exists
+    onnx_path = f"models/{save_name}_prefill.onnx"
+    if os.path.exists(onnx_path):  # save time if already exists
         print("already a {onnx_path}")
         return
 
     dummy_input_ids = torch.randint(
-        0, model.config.vocab_size, (1, 10), dtype=torch.int64 # 10 sequence len is arbatrary
+        0,
+        model.config.vocab_size,
+        (1, 10),
+        dtype=torch.int64,  # 10 sequence len is arbatrary
     ).to(device)
 
     key_val_names = []
@@ -107,8 +111,8 @@ def onnx_export_prefill(model, device, save_name):
 
 
 def onnx_export_llama_decoder(model, device, save_name):
-    onnx_path =  f"models/{save_name}_prefill.onnx"
-    if os.path.exists(onnx_path): # save time if already exists
+    onnx_path = f"models/{save_name}_prefill.onnx"
+    if os.path.exists(onnx_path):  # save time if already exists
         print("already a {onnx_path}")
         return
 
@@ -131,7 +135,10 @@ def onnx_export_llama_decoder(model, device, save_name):
         [[tokenizer.eos_token_id]], device=device
     )  # use end-of-scentence token
     dummy_past_key_values = [
-        (get_kv_cache(model, 10), get_kv_cache(model, 10)) # 10 sequence length is arbatrary.
+        (
+            get_kv_cache(model, 10),
+            get_kv_cache(model, 10),
+        )  # 10 sequence length is arbatrary.
         for _ in range(model.config.num_hidden_layers)
     ]
 
@@ -169,8 +176,8 @@ def onnx_export_llama_decoder(model, device, save_name):
 
 
 def onnx_export_gpt2_decoder(model, device, save_name):
-    onnx_path =  f"models/{save_name}_decoder.onnx"
-    if os.path.exists(onnx_path): # save time if already exists
+    onnx_path = f"models/{save_name}_decoder.onnx"
+    if os.path.exists(onnx_path):  # save time if already exists
         print("already a {onnx_path}")
         return
 
@@ -281,7 +288,7 @@ def get_onnx_io(onnx_model):
 
 
 def onnx_to_relay_prefill(input_shape, save_name, opt_level=0):
-    onnx_model_path =  f"models/{save_name}_prefill.onnx"
+    onnx_model_path = f"models/{save_name}_prefill.onnx"
 
     onnx_model = onnx.load(onnx_model_path)
 
@@ -380,15 +387,15 @@ def run_relay_decoder(lib, last_token_id, kv_cache):
 
 
 def save_relay(name, lib):
-    graph_json_path = f'{name}_graph.json'
+    graph_json_path = f"{name}_graph.json"
     with open(graph_json_path, "w") as f:
         f.write(lib.get_graph_json())
-
 
 
 if __name__ == "__main__":
     # import the model from huggingface to TorchScript
     from transformers import LlamaForCausalLM, LlamaTokenizer
+
     model_name = "meta-llama/Llama-2-7b-hf"
     tokenizer = LlamaTokenizer.from_pretrained(model_name)
     model = LlamaForCausalLM.from_pretrained(model_name, torchscript=True)
@@ -403,9 +410,10 @@ if __name__ == "__main__":
 
     # Test generation functionality
     prompt = "The future of AI is going to be"
-    generated_text, last_token_id, past_key_values = generate(model, prompt, tokenizer, device, num_tokens = 5)
+    generated_text, last_token_id, past_key_values = generate(
+        model, prompt, tokenizer, device, num_tokens=5
+    )
     print(generated_text)
-
 
     # Prefill
     # onnx_export_prefill(model)
@@ -428,10 +436,8 @@ if __name__ == "__main__":
 
     # decoder_lib = onnx_to_relay_decoder(kv_cache_shape)
 
-
     # prompt = "My favorite music is "
     # inputs = tokenizer(prompt, return_tensors="pt")
-
 
     # generated_text, last_token_id, past_key_values = generate(
     #     prompt, tokenizer, num_tokens=5

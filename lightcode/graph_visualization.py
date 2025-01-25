@@ -6,7 +6,8 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import hardware as hw
+
+from lightcode import hardware
 
 
 class GraphVisualization:
@@ -100,7 +101,7 @@ def adj_to_graph(
         else:
             labels[node] = graph.node_list[idx].stack.opp
 
-            if isinstance(graph.node_list[idx].get_algo_info("hardware"), hw.PHU):
+            if isinstance(graph.node_list[idx].get_algo_info("hardware"), hardware.PHU):
                 colors[node] = "lightcoral"
             else:
                 colors[node] = "lightblue"
@@ -147,10 +148,10 @@ def adj_to_graph(
 
 def make_schedule_diagram(graph, xlim_start=None, xlim_end=None):
     data = {"task": [], "start": [], "end": [], "label": []}  # Labels for the blocks
-    hardware = set()
+    schedule_hardware = set()
     for node in graph.node_list:
         data["task"].append(node.hardware_selection)
-        hardware.add(node.hardware_selection)
+        schedule_hardware.add(node.hardware_selection)
         data["start"].append(node.start_time)
         data["end"].append(node.start_time + node.time_cost)
         data["label"].append(node.stack_id)

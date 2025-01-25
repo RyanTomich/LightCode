@@ -4,8 +4,9 @@ Graph types
 
 import numpy as np
 import pandas as pd
-import hardware as hw
-import input_validation as validate
+
+from lightcode import hardware
+from lightcode import validation
 
 
 def get_moc_size(shape, sequence_len, moc_sequence_len):
@@ -49,10 +50,10 @@ class Node:
         self.parents = stack.parents
         self.input_shapes = stack.input_shapes
         self.output_shapes = stack.output_shapes
-        self.time_cost = hw.Hardware.algs[algorithm].time_cost(
+        self.time_cost = hardware.Hardware.algs[algorithm].time_cost(
             self.input_shapes, self.output_shapes
         )
-        self.energy_cost = hw.Hardware.algs[algorithm].energy_cost(
+        self.energy_cost = hardware.Hardware.algs[algorithm].energy_cost(
             self.input_shapes, self.output_shapes
         )
         self.hardware_selection = None
@@ -74,8 +75,8 @@ class Node:
         )
 
     def get_algo_info(self, info_type):
-        algorithm_obj = hw.Hardware.algs[self.algorithm]
-        info = {"opp": algorithm_obj.opp, "hardware": algorithm_obj.hardware}
+        algorithm_obj = hardware.Hardware.algs[self.algorithm]
+        info = {"opp": algorithm_obj.opp, "hardware": algorithm_obj.alg_hardware}
         return info[info_type]
 
     def _get_node_id(self):
@@ -124,7 +125,7 @@ class Stack:
         else:
             node_list = [
                 Node(alg, self)
-                for alg, algorithm_obj in hw.Hardware.algs.items()
+                for alg, algorithm_obj in hardware.Hardware.algs.items()
                 if self.opp == algorithm_obj.opp
             ]
             if only_phu and len(node_list) > 1:
@@ -171,7 +172,7 @@ class Stack:
 
 class Graph:
     def __init__(self, node_list, weight_variable):
-        validate.node_list_complete(node_list)
+        validation.node_list_complete(node_list)
         self.node_list = node_list
         self.id_to_idx = {v.stack_id: i for i, v in enumerate(self.node_list)}
         self.in_nodes = self._get_in()
@@ -228,16 +229,16 @@ class Graph:
         """
         total_numbers = 0
         if direction == "out":
-            total_numbers += hw.ten_elm(
+            total_numbers += hardware.ten_elm(
                 node.output_shapes[0]  # TODO assuming uniform split
             )
         else:
             for shape in node.input_shapes:
-                total_numbers += hw.ten_elm(shape)
+                total_numbers += hardware.ten_elm(shape)
 
         return (
             total_numbers,
-            total_numbers * hw.BITS_PER_NUM,
+            total_numbers * hardware.BITS_PER_NUM,
         )  # TODO assuming all numbers are the same precision
 
     def make_connection(self, start_node_idx, end_node_idx) -> int:
@@ -254,7 +255,7 @@ class Graph:
         start_node = self.get_node_obj(start_node_idx)
         end_node = self.get_node_obj(end_node_idx)
 
-        return hw.get_edge_val(self, start_node, end_node, self.weight_variable)
+        return hardware.get_edge_val(self, start_node, end_node, self.weight_variable)
 
     def _creat_adj_matrix(self):
         """
@@ -279,7 +280,7 @@ class Graph:
         returns metadata about the schedule.
         Graph must have been scheduled first.
         """
-        validate.graph_state_scheduled(self)
+        validation.graph_state_scheduled(self)
 
         data = {
             "hardware": [],
@@ -379,7 +380,7 @@ class StackGraph(Graph):
                 )
             )
 
-        hw.NODE_COUNT = max(hw.NODE_COUNT, index)
+        hardware.NODE_COUNT = max(hardware.NODE_COUNT, index)
         return stacks
 
     # adj_matrix
@@ -412,7 +413,7 @@ class StackGraph(Graph):
         for start_idx, start_node in enumerate(start_node_list):
             for end_idx, end_node in enumerate(end_node_list):
 
-                connection_matrix[start_idx][end_idx] = hw.get_edge_val(
+                connection_matrix[start_idx][end_idx] = hardware.get_edge_val(
                     self, start_node, end_node, self.weight_variable
                 )
 

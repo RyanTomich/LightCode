@@ -1,8 +1,7 @@
-'''
+"""
 Successfully export GPT2 Prefill and Decoder for static size
 env: tvm_conda
-'''
-
+"""
 
 import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
@@ -326,9 +325,10 @@ def run_relay_decoder(lib, last_token_id, kv_cache):
 
 
 def save_relay(name, lib):
-    graph_json_path = f'../models/len_comparison/{name}_graph_{sequence_len}.json'
+    graph_json_path = f"../models/len_comparison/{name}_graph_{sequence_len}.json"
     with open(graph_json_path, "w") as f:
         f.write(lib.get_graph_json())
+
 
 if __name__ == "__main__":  # import guard
     model_name = "gpt2"
@@ -376,5 +376,5 @@ if __name__ == "__main__":  # import guard
     next_token_id, kv_cache = run_relay_prefill(prefill_lib, inputs)
     next_token_id, kv_cache = run_relay_decoder(decoder_lib, next_token_id, kv_cache)
 
-    save_relay('gpt2_prefill', prefill_lib)
-    save_relay('gpt2_decoder', decoder_lib)
+    save_relay("gpt2_prefill", prefill_lib)
+    save_relay("gpt2_decoder", decoder_lib)

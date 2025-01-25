@@ -10,7 +10,9 @@ from tvm.contrib import graph_runtime
 from tvm.contrib import graph_executor
 
 from transformers import LlamaForCausalLM, LlamaTokenizer
+
 # from torchao.quantization import quantize_, int8_weight_only
+
 
 def measure_inference_time(model, input_ids, num_runs=10):
     # Warm-up to ensure fair timing
@@ -72,7 +74,9 @@ mod, _ = relay.frontend.from_onnx(
 )  # <class 'tvm.ir.module.IRModule'>
 
 # Export model graph parts
-config = {"relay.FuseOps.max_depth": 0,}
+config = {
+    "relay.FuseOps.max_depth": 0,
+}
 target = tvm.target.Target("llvm", host="llvm")
 with tvm.transform.PassContext(opt_level=0, config=config):
     lib = relay.build(mod, target=target)
@@ -81,6 +85,6 @@ graph_json_path = f"quatnized_model.json"
 with open(graph_json_path, "w") as f:
     f.write(lib.get_graph_json())
 
-'''
+"""
 Killed when doing mod, params
-'''
+"""
