@@ -3,6 +3,13 @@ layout: default
 title: "How To"
 nav_order: 4
 ---
+# Index
+- [Generating Relay Conputational Graph](#generating-relay-conputational-graph)
+- [Optimization Frontend](#optimization-frontend)
+- [Optimization Pipeline](#optimization-pipeline)
+- [Adding a new model](#adding-a-new-model)
+- [Adding a new hardware](#adding-a-new-hardware)
+
 
 # Generating Relay Conputational Graph
 
@@ -100,7 +107,7 @@ next_token_id, kv_cache = lc_relay.run_relay_decoder(decoder_lib, next_token_id,
 
 We used TVM Rela IR to extract the conputational graphs of the meta-llama/Llama-2-7b-hf model.
 
-## The code, all together.
+## The code, all together
 ```python
 import torch
 import relay as lc_relay
@@ -156,14 +163,132 @@ next_token_id, kv_cache = lc_relay.run_relay_prefill(prefill_lib, inputs)
 next_token_id, kv_cache = lc_relay.run_relay_decoder(decoder_lib, next_token_id, kv_cache)
 ```
 
+# Optimization Frontend
+
+## File Depndancys
+```python
+from lightcode import main
+from lightcode import hardware
+from lightcode import models
+```
+
+## Create and Register Hardware
+First we must tell the simulator what type of hardware will be available. Our simplified model of hardware considers only a static, average clock cycle and core count. This is an example of registering a CPU, PHU, and GPU. More complex architectures would need aditional backend support.
+
+```python
+local_hardware = []
+hardware.Hardware._hardware_reset()
+
+CPU_AVERAGE_CLOCK = 3.208 * 10**9  # 60**9, 6
+CPU_CORES = 1
+local_hardware.append(hardware.CPU(CPU_AVERAGE_CLOCK, CPU_CORES))
+
+PHU_MIN_CLOCK = 9.7 * 10**9  # 100**9, 10 Ghz
+PHU_CORES = 1
+PHU_MULTIPLEX = 20
+local_hardware.append(hardware.PHU(PHU_MIN_CLOCK, PHU_CORES, PHU_MULTIPLEX))
+
+GPC = 8  # Graphical Processing Clusters
+TPC_per_GPC = 9  # Texture Processing Clusters/Graphical Processing Cluster
+SM_per_TPC = 2  # Streaming multiprocessors / Texture Processing Cluster
+fp32_CUDA_cores_per_SM = 128  # fp32_CUDA_cores / Streaming multiprocessor
+TC_per_SM = 4  # Tensor Cores / Streaming multiprocessor
+local_hardware.append(
+    hardware.GPU(
+        GPU_FP32_CLOCK, GPC, TPC_per_GPC, SM_per_TPC, fp32_CUDA_cores_per_SM, TC_per_SM
+    )
+)
+
+available_hardware = hardware.initilize_hardware(local_hardware)
+```
+
+## Run Graph Search and Thresholds
+Next we tell the optimizer what its optimizing for.
+- `time`: total time of the computation
+- `energy`: total energy consumption of the computation
+- 'always_phu': debug tool that always selects photonics if available
+
+graph search will run the optmizations and return stats about time, energy, and how many of the posiable nodes selected photonics for the given model and optmization.
+
+Threshold evaluates all multi-node stacks and establishes at which sequence length the optimizer switches hardware.
+
+```python
+# select an optimization
+# optimization = "time"
+optimization = "energy"
+# optimization = "always_phu"
+
+results = main.graph_search(
+    models.gpt2_prefill,
+    optimization,
+    available_hardware,
+    moc_sequence_length=1400, # arbatrary number
+    profiles=True,
+    colect_data=True,
+)
+
+thresholds = main.threshold_search(
+    models.gpt2_prefill,
+    optimization,
+    available_hardware,
+)
+```
+
+## The code, all together
+```python
+from lightcode import main
+from lightcode import hardware
+from lightcode import models
+
+CPU_AVERAGE_CLOCK = 3.208 * 10**9  # 60**9, 6
+PHU_MIN_CLOCK = 9.7 * 10**9  # 100**9, 10 Ghz
+GPU_FP32_CLOCK = 1.98 * 10**9  # 1.98 GHz
+CPU_CORES = 1
+PHU_CORES = 1
+PHU_MULTIPLEX = 20
+
+local_hardware = []
+hardware.Hardware._hardware_reset()
+local_hardware.append(hardware.CPU(CPU_AVERAGE_CLOCK, CPU_CORES))
+local_hardware.append(hardware.PHU(PHU_MIN_CLOCK, PHU_CORES, PHU_MULTIPLEX))
+
+GPC = 8  # Graphical Processing Clusters
+TPC_per_GPC = 9  # Texture Processing Clusters/Graphical Processing Cluster
+SM_per_TPC = 2  # Streaming multiprocessors / Texture Processing Cluster
+fp32_CUDA_cores_per_SM = 128  # fp32_CUDA_cores / Streaming multiprocessor
+TC_per_SM = 4  # Tensor Cores / Streaming multiprocessor
+local_hardware.append(
+    hardware.GPU(
+        GPU_FP32_CLOCK, GPC, TPC_per_GPC, SM_per_TPC, fp32_CUDA_cores_per_SM, TC_per_SM
+    )
+)
+
+available_hardware = hardware.initilize_hardware(local_hardware)
+
+# optimization = "time"
+optimization = "energy"
+# optimization = "always_phu"
+
+results = main.graph_search(
+    models.gpt2_prefill,
+    optimization,
+    available_hardware,
+    moc_sequence_length=1400, # arbatrary number
+    profiles=True,
+    colect_data=True,
+)
+
+thresholds = main.threshold_search(
+    models.gpt2_prefill,
+    optimization,
+    available_hardware,
+)
+```
+
 # Optimization Pipeline
+Lets expose one layer of abstraction to give more control over individual nodes in the graph. This can be useful for further analysis.
 
-File Depndancys
-```python
-
-```
-THe first step is to creat
-```python
-```
+# Adding a new model
+# Adding a new hardware
 
 [^1]: For each token generated by an autoregressive LLM, the output is a stochastic vector. This vector is the same length as the model's vocabulary and it represents the probability that each token is the correct next one. There are strategies like [top-k](https://www.ibm.com/docs/en/watsonx/saas?topic=lab-model-parameters-prompting#:~:text=0.05-,Top%20K%20example,-Top%20K%20specifies) and [top-p](https://www.ibm.com/docs/en/watsonx/saas?topic=lab-model-parameters-prompting#:~:text=Top%20K%20%3D%201.-,Top%20P%20example,-Top%20P%20specifies) that decides which of these will be the next token. There are other parameters like [Temperature](https://www.ibm.com/docs/en/watsonx/saas?topic=lab-model-parameters-prompting#:~:text=reset%20to%200.-,Temperature%20example,-The%20temperature%20setting) that affect this decision as well. Greedy simply selects the index of the maximum(i.e. the highest probability next token). This makes LLm deterministic which is useful for testing. It is not good for getting interesting responses.
