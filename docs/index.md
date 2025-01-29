@@ -33,7 +33,7 @@ For more details and source code, visit the [GitHub repository](https://github.c
 
 **Computational Graph Operator Selection:**
 
-In the Transformer architecture, tensor products are not performed sequentially. Instead, they are interspersed with other operations such as addition, normalization, transpose, and activation functions, which the photonic accelerator cannot execute. In contemporary LLM architectures, operations that can be directly accelerated by photonic hardware are rarely sequential. LightCode takes advantage of this assumption to accelerate the 'shortest path' graph search [^1] . For more capable hardware or model architectures where this assumption does not hold, LightCode must revert to a more exhaustive, albeit slower, graph search [quick_heuristic](https://github.com/RyanTomich/LightCode/blob/main/lightcode/graph_transformations.py#L283)
+In the Transformer architecture, tensor products are not performed sequentially. Instead, they are interspersed with other operations such as addition, normalization, transpose, and activation functions, which the photonic accelerator cannot execute. In contemporary LLM architectures, operations that can be directly accelerated by photonic hardware are rarely sequential. LightCode takes advantage of this assumption to accelerate the 'shortest path' graph search[^1]. For more capable hardware or model architectures where this assumption does not hold, LightCode must revert to a more exhaustive, albeit slower, graph search [quick_heuristic](https://github.com/RyanTomich/LightCode/blob/main/lightcode/graph_transformations.py#L283)
 
 
 **Graph Caching:**
@@ -75,19 +75,27 @@ PyTorch 2.0 introduces improved support for dynamic computation graphs and compi
 -	TorchInductor -  Code generator for accelerator backends (OpenAI Triton)
 -	[Custom Backends](https://pytorch.org/docs/stable/torch.compiler_custom_backends.html) - Create a backend function that is callable from TorchDynamo.
 
-PyTorch Uses a JIT compiler for optimization and appears to have support for dynamic dispatch [^2]  with PrivateUse1 - custom PyTorch backend dispatch key
+PyTorch Uses a JIT compiler for optimization and appears to have support for dynamic dispatch[^2] with PrivateUse1 - custom PyTorch backend dispatch key
 -	[Multi-device integration ](https://pytorch.org/blog/pt-multidevice-integr ation/)
 -	[New Backend Integration](https://pytorch.org/tutorials/advanced/privateuseone.html)
 
 
 # References
 [1]	Åleskog, C. et al. 2024. A Comparative Study on Simulation Frameworks for AI Accelerator Evaluation. 2024 IEEE International Parallel and Distributed Processing Symposium Workshops (IPDPSW) (May 2024), 321–328.
+
 [2]	Ansel, J. et al. 2024. PyTorch 2: Faster Machine Learning Through Dynamic Python Bytecode Transformation and Graph Compilation. Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2 (La Jolla CA USA, Apr. 2024), 929–947.
+
 [3]	Apache TVM Unity: a vision for the ML software & hardware ecosystem in 2022: 2021. https://tvm.apache.org/2021/12/15/tvm-unity. Accessed: 2025-01-29.
+
 [4]	Chen, T. et al. 2018. TVM: An Automated End-to-End Optimizing Compiler for Deep Learning. (2018).
+
 [5]	Kim, H. et al. 2024. Exploiting Intel Advanced Matrix Extensions (AMX) for Large Language Model Inference. IEEE Computer Architecture Letters. 23, 1 (Jan. 2024), 117–120. DOI:https://doi.org/10.1109/LCA.2024.3397747.
+
 [6]	Roesch, J. et al. 2019. Relay: A High-Level Compiler for Deep Learning. arXiv.
+
 [7]	Roesch, J. et al. 2018. Relay: A New IR for Machine Learning Frameworks. Proceedings of the 2nd ACM SIGPLAN International Workshop on Machine Learning and Programming Languages (Jun. 2018), 58–68.
+
+
 
 [^1] Parallels can be drawn to [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) and the [group Steiner tree problem](https://www.cs.jhu.edu/~mdinitz/classes/ApproxAlgorithms/Spring2019/Lectures/lecture13.pdf) with stacks beign the gorups. with the main difference being that the hypergraph is directed.
 
