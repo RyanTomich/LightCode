@@ -81,22 +81,15 @@ PyTorch Uses a JIT compiler for optimization and appears to have support for dyn
 
 
 # References
-[1]	Åleskog, C. et al. 2024. A Comparative Study on Simulation Frameworks for AI Accelerator Evaluation. 2024 IEEE International Parallel and Distributed Processing Symposium Workshops (IPDPSW) (May 2024), 321–328.
-
-[2]	Ansel, J. et al. 2024. PyTorch 2: Faster Machine Learning Through Dynamic Python Bytecode Transformation and Graph Compilation. Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2 (La Jolla CA USA, Apr. 2024), 929–947.
-
-[3]	Apache TVM Unity: a vision for the ML software & hardware ecosystem in 2022: 2021. https://tvm.apache.org/2021/12/15/tvm-unity. Accessed: 2025-01-29.
-
-[4]	Chen, T. et al. 2018. TVM: An Automated End-to-End Optimizing Compiler for Deep Learning. (2018).
-
-[5]	Kim, H. et al. 2024. Exploiting Intel Advanced Matrix Extensions (AMX) for Large Language Model Inference. IEEE Computer Architecture Letters. 23, 1 (Jan. 2024), 117–120. DOI:https://doi.org/10.1109/LCA.2024.3397747.
-
-[6]	Roesch, J. et al. 2019. Relay: A High-Level Compiler for Deep Learning. arXiv.
-
-[7]	Roesch, J. et al. 2018. Relay: A New IR for Machine Learning Frameworks. Proceedings of the 2nd ACM SIGPLAN International Workshop on Machine Learning and Programming Languages (Jun. 2018), 58–68.
+[1]:	Åleskog, C. et al. 2024. A Comparative Study on Simulation Frameworks for AI Accelerator Evaluation. 2024 IEEE International Parallel and Distributed Processing Symposium Workshops (IPDPSW) (May 2024), 321–328.
+[2]:	Ansel, J. et al. 2024. PyTorch 2: Faster Machine Learning Through Dynamic Python Bytecode Transformation and Graph Compilation. Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2 (La Jolla CA USA, Apr. 2024), 929–947.
+[3]:	Apache TVM Unity: a vision for the ML software & hardware ecosystem in 2022: 2021. https://tvm.apache.org/2021/12/15/tvm-unity. Accessed: 2025-01-29.
+[4]:	Chen, T. et al. 2018. TVM: An Automated End-to-End Optimizing Compiler for Deep Learning. (2018).
+[5]:	Kim, H. et al. 2024. Exploiting Intel Advanced Matrix Extensions (AMX) for Large Language Model Inference. IEEE Computer Architecture Letters. 23, 1 (Jan. 2024), 117–120. DOI:https://doi.org/10.1109/LCA.2024.3397747.
+[6]:	Roesch, J. et al. 2019. Relay: A High-Level Compiler for Deep Learning. arXiv.
+[7]:	Roesch, J. et al. 2018. Relay: A New IR for Machine Learning Frameworks. Proceedings of the 2nd ACM SIGPLAN International Workshop on Machine Learning and Programming Languages (Jun. 2018), 58–68.
 
 
 
-[^1] Parallels can be drawn to [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) and the [group Steiner tree problem](https://www.cs.jhu.edu/~mdinitz/classes/ApproxAlgorithms/Spring2019/Lectures/lecture13.pdf) with stacks beign the gorups. with the main difference being that the hypergraph is directed.
-
-[^2] [Dynamic Dispatching] (https://en.wikipedia.org/wiki/Dynamic_dispatch), deciding which function to run depending on runtime information, is closely related to  [Dynamic Linking]( https://en.wikipedia.org/wiki/Dynamic_linker), which decides which function to bring from memory at runtime. It is a subject in [Polymorphism](https://en.wikipedia.org/wiki/Polymorphism_(computer_science).
+[^1]: Parallels can be drawn to [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) and the [group Steiner tree problem](https://www.cs.jhu.edu/~mdinitz/classes/ApproxAlgorithms/Spring2019/Lectures/lecture13.pdf) with stacks beign the gorups. with the main difference being that the hypergraph is directed.
+[^2]: [Dynamic Dispatching](https://en.wikipedia.org/wiki/Dynamic_dispatch), deciding which function to run depending on runtime information, is closely related to  [Dynamic Linking]( https://en.wikipedia.org/wiki/Dynamic_linker), which decides which function to bring from memory at runtime. It is a subject in [Polymorphism](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)).
