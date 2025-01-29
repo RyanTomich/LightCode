@@ -30,6 +30,8 @@ Purpose
 
 - Computational Graph - Relay IR computational graph in a `.json` format. The output of TVM Relay
 - Partition - LLM's are highly repetitive. Searches for articulation nodes[^1], handles edge cases like i/o nodes and residual connections, and splits the computational graph into many subgraphs. Adds moc 'start' nodes to make subgraphs independant.
+    - Selection is NP hard on multiple fronts. To scale better and accommodate larger models, it seemed necessary to find a way to break into subproblems.  Many transformer models have repeating section that are identical in size.Transformers structure opens many articulation nodes, making partitioning possible.
+
 - Stack - Transformers each subgraph into [Stacked Graph IR](#stacked-graph-ir) by identifying which operations can be executed on which hardware, stacking those various options into a stack.
 - Flatten/Merge - Run a dijkstra's style search to identify optimal node selection from each stack. The individual choices of each stack for each subgraph are compiled back into once master 'flattened' computational graph.
 - Linearize - Order the computational nodes such that data dependencies are obeyed.
