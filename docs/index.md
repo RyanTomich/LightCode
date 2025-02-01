@@ -45,13 +45,16 @@ While tensor products dominate the computational workload, encoder-decoder archi
 # Simulation
 
 **Hardware properties**
+
 CPU
+
 | Property         | Value   |
 |-----------------|--------|
 | Number of Cores | 1      |
 | Clock Speed     | 3.208 GHz |
 
 PHU
+
 | Property               | Value   |
 |------------------------|--------|
 | Number of Cores       | 1      |
@@ -59,6 +62,7 @@ PHU
 | Number of Multiplex Units | 20 [^1] |
 
 GPU [^2]
+
 | Property  | Value  |
 |-----------|--------|
 | Graphical Processing Clusters | 8  |
@@ -74,6 +78,7 @@ GPU [^2]
 We can use LightCodes `graph_search` feature to calculate the prefill stage of GPT2 on different hardware configurations,
 
 Time optimization
+
 | Hardware  | moc_sequence_length[tok] | Makespan[s] | num_nodes | total_energy[pj] | num_photonic | posiable_photonic |
 |-----------|--------------------------|-------------|-----------|------------------|--------------|-------------------|
 | CPU     | 1400 | 30.66707 |  1108 | 161644179672.6 | 0 | 0|
