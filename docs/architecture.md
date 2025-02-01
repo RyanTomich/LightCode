@@ -12,18 +12,6 @@ nav_order: 3
 
  - Each module only depends on modules below it
 
-Purpose
-- main
-- graph_transformation
-- photonic_algorithms
-- stacked_graph
-- graph_visualization
-- data_collection
-- code_generation
-- models
-- input_validation
-- hardware
-
 ## Optimization Pipeline
 
 <img src="image-1.png" alt="alt text" width="500" style="display: block; margin: auto;" />
@@ -81,6 +69,6 @@ Note: This is an extremely simplified hardware model, especially when considerin
 
 
 
-[^1]: Node in a DAG such that its removal would split the graph in two. Usually found between layers in many LLms. [Visualization](model_visualizations.md#articulation-nodes)
+[^1]: Node in a DAG such that its removal would split the graph in two. Usually found between layers in many LLms. [Visualization](model_visualizations#gp2-split-by-articulation-nodes)
 
 [^2]: This is a special case [Hypergraph](https://en.wikipedia.org/wiki/Hypergraph) with Hyperedges.

@@ -45,23 +45,22 @@ While tensor products dominate the computational workload, encoder-decoder archi
 # Simulation
 
 **Hardware properties**
-
 CPU
-| Property       | Value   |
-|:---------------:|:--------:|
+| Property         | Value   |
+|-----------------|--------|
 | Number of Cores | 1      |
-| Clock Speed   | 3.208 GHz |
+| Clock Speed     | 3.208 GHz |
 
 PHU
-| Property             | Value   |
-|:----------------------:|:--------:|
-| Number of Cores     | 1      |
-| Clock Speed         | 9.7 GHz |
+| Property               | Value   |
+|------------------------|--------|
+| Number of Cores       | 1      |
+| Clock Speed           | 9.7 GHz |
 | Number of Multiplex Units | 20 [^1] |
 
 GPU [^2]
 | Property  | Value  |
-|:-----------:|:--------:|
+|-----------|--------|
 | Graphical Processing Clusters | 8  |
 | Texture Processing Clusters per Graphical Processing Cluster | 9  |
 | Streaming Multiprocessors per Texture Processing Cluster | 2  |
@@ -70,14 +69,13 @@ GPU [^2]
 | Clock Speed | 1.98 GHz |
 
 
-
 **Raw sim results**
 
 We can use LightCodes `graph_search` feature to calculate the prefill stage of GPT2 on different hardware configurations,
 
 Time optimization
 | Hardware  | moc_sequence_length[tok] | Makespan[s] | num_nodes | total_energy[pj] | num_photonic | posiable_photonic |
-|:---------:|:------------------------:|:-----------:|:---------:|:----------------:|:------------:|:-----------------:|
+|-----------|--------------------------|-------------|-----------|------------------|--------------|-------------------|
 | CPU     | 1400 | 30.66707 |  1108 | 161644179672.6 | 0 | 0|
 | CPU     | 150 | 2.98404 | 1108 | 50184590920.6 | 0 | 0|
 | CPU/PHU | 1400 | 1.93061 |  1518 | 134854955336.6 | 73 | 73|
@@ -97,11 +95,81 @@ Time optimization
 - possible_photonic: The total number of operations that could potentially be run on photonic hardware.[^3]
 
 
-each hardware to sequence lenght (CPU, GPU, CPU/PH, GPU/PH)
+**Hardware Comparison - Llama prefill**
 
-Scailing law for phu cores
+Energy Optimization
 
-Thresholding Numbers
+<div style="display: flex; justify-content: center; gap: 10px;">
+    <img src="image-14.png" alt="alt text" width="400" />
+    <img src="image-15.png" alt="alt text" width="400" />
+</div>
+
+
+<div style="display: flex; justify-content: center; gap: 10px;">
+    <img src="image-16.png" alt="alt text" width="400" />
+    <img src="image-17.png" alt="alt text" width="400" />
+</div>
+
+
+The results indicate that the energy optimization scheme enhances both execution time and energy efficiency for the CPU/PHU configuration over just CPU. Conversely, integrating the PHU with the GPU and optimizing for energy yields reductions in energy consumption at the expense execution time.
+
+
+Time Optimization
+
+<div style="display: flex; justify-content: center; gap: 10px;">
+    <img src="image-18.png" alt="alt text" width="400" />
+    <img src="image-19.png" alt="alt text" width="400" />
+</div>
+
+
+<div style="display: flex; justify-content: center; gap: 10px;">
+    <img src="image-20.png" alt="alt text" width="400" />
+    <img src="image-21.png" alt="alt text" width="400" />
+</div>
+
+
+Similarly, the time optimization scheme consistently improves both time and energy metrics for the CPU/PHU setup. Notably, when optimizing for execution time with the GPU/PHU configuration, the scheme determines that utilizing the photonic accelerator offers no performance benefits, resulting in identical outcomes for both the GPU and GPU/PHU configurations. In contrast, during energy optimization, the photonic accelerator is consistently selected, highlighting a divergent strategy based on the optimization objective.
+
+
+Note that for llama-7b, the optimization selects either all the operations photonic or none of them. LightCode is capable of selecting each operation on an individual basis(putting only some operations to photonic on a given inference request), but this just happens to never be optimal for llama-7b.
+
+**Hardware Comparison - GPT2 prefill**
+
+Energy Optimization
+
+<div style="display: flex; justify-content: center; gap: 10px;">
+    <img src="image-22.png" alt="alt text" width="400" />
+    <img src="image-23.png" alt="alt text" width="400" />
+</div>
+
+
+<div style="display: flex; justify-content: center; gap: 10px;">
+    <img src="image-24.png" alt="alt text" width="400" />
+    <img src="image-25.png" alt="alt text" width="400" />
+</div>
+
+
+
+
+Time Optimization
+
+<div style="display: flex; justify-content: center; gap: 10px;">
+    <img src="image-26.png" alt="alt text" width="400" />
+    <img src="image-27.png" alt="alt text" width="400" />
+</div>
+
+<div style="display: flex; justify-content: center; gap: 10px;">
+    <img src="image-28.png" alt="alt text" width="400" />
+    <img src="image-29.png" alt="alt text" width="400" />
+</div>
+
+
+These two models exhibits similar trends because there is minimal fundamental differences between them. However, LLaMA-7B's larger size provides the optimization process with greater flexibility, allowing for more substantial improvements.
+
+**Scailing of phu cores**
+
+
+**Thresholding Numbers**
 
 
 
@@ -171,7 +239,7 @@ PyTorch Uses a JIT compiler for optimization and appears to have support for dyn
 
 [4]	Peccerillo, B. et al. 2022. A survey on hardware accelerators: Taxonomy, trends, challenges, and perspectives. Journal of Systems Architecture. 129, (Aug. 2022), 102561. DOI:https://doi.org/10.1016/j.sysarc.2022.102561.
 
-[5]	The Death of Moore’s Law: What it means and what might fill the gap going forward | CSAIL Alliances: https://cap.csail.mit.edu/death-moores-law-what-it-means-and-what-might-fill-gap-going-forward. Accessed: 2025-01-31.
+[5]	The Death of Moore’s Law: What it means and what might fill the gap going forward CSAIL Alliances: https://cap.csail.mit.edu/death-moores-law-what-it-means-and-what-might-fill-gap-going-forward. Accessed: 2025-01-31.
 
 [6]	Vaswani, A. et al. 2023. Attention Is All You Need. arXiv.
 
@@ -186,10 +254,7 @@ PyTorch Uses a JIT compiler for optimization and appears to have support for dyn
 
 [^2]: This is based roughly on the [NVIDIA H100](https://resources.nvidia.com/en-us-tensor-core). To learn more about some of the basic terminology, check out the [GPU Glossary](https://modal.com/gpu-glossary)
 
-[^3]: In this case, 73 out of 73 possible photonic operations were selected. This indicates that:
-The model has 73 total operations that can be computed by a photonic processor (matrix multiplication).
-When optimizing for time, the graph search algorithm determined that all 73 operations should be computed using photonics.
-If the selection ratio were lower (e.g., 25/73), it would imply that only a subset of operations would benefit from being executed on photonic hardware, likely due to differences in operation sizes (e.g., larger matrix multiplications).
+[^3]: In this case, 73 out of 73 possible photonic operations were selected. This indicates that:The model has 73 total operations that can be computed by a photonic processor (matrix multiplication). When optimizing for time, the graph search algorithm determined that all 73 operations should be computed using photonics. If the selection ratio were lower (e.g., 25/73), it would imply that only a subset of operations would benefit from being executed on photonic hardware, likely due to differences in operation sizes (e.g., larger matrix multiplications).
 
 [^4]: Parallels can be drawn to [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) and the [group Steiner tree problem](https://www.cs.jhu.edu/~mdinitz/classes/ApproxAlgorithms/Spring2019/Lectures/lecture13.pdf) with stacks being the groups. with the main difference being that the hypergraph is directed.
 
