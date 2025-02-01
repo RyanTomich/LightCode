@@ -8,7 +8,7 @@ nav_order: 3
 
 ## File Structure
 
-<img src="image.png" alt="alt text" width="700" />
+<img src="image.png" alt="alt text" width="700" style="display: block; margin: auto;" />
 
  - Each module only depends on modules below it
 
@@ -26,7 +26,7 @@ Purpose
 
 ## Optimization Pipeline
 
-<img src="image-1.png" alt="alt text" width="500" />
+<img src="image-1.png" alt="alt text" width="500" style="display: block; margin: auto;" />
 
 - Computational Graph - Relay IR computational graph in a `.json` format. The output of TVM Relay
 - Partition - LLM's are highly repetitive. Searches for articulation nodes[^1], handles edge cases like i/o nodes and residual connections, and splits the computational graph into many subgraphs. Adds moc 'start' nodes to make subgraphs independant.
@@ -53,13 +53,32 @@ Key point, during [flattening](#optimization-pipeline) of the graph, only one no
 
 ## Arithmatic Hardware Simulator
 
-<img src="image-2.png" alt="alt text" width="500" />
+<img src="image-2.png" alt="alt text" width="500" style="display: block; margin: auto;" />
+
 
 The cost function mentioned in [Stacked Graph IR](#stacked-graph-ir) is calculated using the Arithmetic Hardware Simulator.
 Computation cost is based on a linear regression of 'operations' which is self defined and calculated based on the input tensor shapes and the operation being performed. Runtime data is collected on real hardware if available.
 Transfer cost is based on the number of bits being sent between locations. For instance, if the result of a photonic matmul needs to be sent to a GPU add, each bit must be sent to local SRAM, then to GPU.
 
 Note: This is an extremely simplified hardware model, especially when considering memory accesses. It was designed to be a quick gauge for how running a computation on a novel hardware might compare. More accurate (and time intensive) hardware models could be added as a separate backend at some point.
+
+<img src="image-8.png" alt="alt text" width="400" style="display: block; margin: auto;" />
+
+| Prompt Size | Lightcode |   TVM   | % Error |
+|------------:|---------:|--------:|--------:|
+|          2  | 0.03245  | 0.05926 |    -45  |
+|          3  | 0.05216  | 0.08938 |    -42  |
+|          4  | 0.07188  | 0.07535 |     -5  |
+|          5  | 0.09157  | 0.12632 |    -27  |
+|          6  | 0.11132  | 0.10438 |      7  |
+|          8  | 0.15077  | 0.11115 |     36  |
+|         10  | 0.20997  | 0.23493 |    -11  |
+|         12  | 0.24945  | 0.27081 |     -8  |
+|         14  | 0.28895  | 0.30901 |     -6  |
+|         17  | 0.32845  | 0.34200 |     -4  |
+|         19  | 0.36797  | 0.38200 |     -4  |
+|         22  | 0.44705  | 0.45000 |     -1  |
+
 
 
 [^1]: Node in a DAG such that its removal would split the graph in two. Usually found between layers in many LLms. [Visualization](model_visualizations.md#articulation-nodes)

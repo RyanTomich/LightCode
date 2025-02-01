@@ -65,8 +65,3 @@ ans = main.graph_search(
 {'moc_sequence_length': 50, 'Makespan': 0.04984, 'num_nodes': 1518, 'total_energy': 43079811496.0, 'num_photonic': 73, 'posiable_photonic': 73}
 
 # Plots
-
-[^1]: In this case, 73 out of 73 possible photonic operations were selected. This indicates that:
-The model has 73 total operations that can be computed by a photonic processor (matrix multiplication).
-When optimizing for time, the graph search algorithm determined that all 73 operations should be computed using photonics.
-If the selection ratio were lower (e.g., 25/73), it would imply that only a subset of operations would benefit from being executed on photonic hardware, likely due to differences in operation sizes (e.g., larger matrix multiplications).
