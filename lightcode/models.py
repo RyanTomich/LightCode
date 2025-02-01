@@ -3,6 +3,7 @@ Model instance with Relay Graph, JSON link, sequence length ran at.
 """
 
 import json
+import importlib.resources as resources
 
 
 class Model:
@@ -16,32 +17,31 @@ class Model:
         with open(self.relay_path, encoding="utf-8") as json_file:
             return json.load(json_file)
 
-
 llama_prefill = Model(
     model="Llama-2-7b-hf",
     stage="prefill",
-    relay_path="lightcode/models/opt0_Llama-2-7b-hf_graph.json",
+    relay_path=str(resources.files("lightcode") / "models" / "opt0_Llama-2-7b-hf_graph.json"),
     sequence_length=6,
 )
 
 llama_decoder = Model(
     model="Llama-2-7b-hf",
     stage="decoder",
-    relay_path="lightcode/models/llama_2_7b_decoder_graph.json",
+    relay_path=str(resources.files("lightcode") / "models" / "llama_2_7b_decoder_graph.json"),
     sequence_length=11,
 )
 
 gpt2_prefill = Model(
     model="gpt2",
     stage="prefill",
-    relay_path="lightcode/models/gpt2_prefill_graph.json",
+    relay_path=str(resources.files("lightcode") / "models" / "gpt2_prefill_graph.json"),
     sequence_length=5,
 )
 
 gpt2_decoder = Model(
     model="gpt2",
     stage="decoder",
-    relay_path="lightcode/models/gpt2_decoder_graph.json",
+    relay_path=str(resources.files("lightcode") / "models" / "gpt2_decoder_graph.json"),
     sequence_length=6,
 )
 
