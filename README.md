@@ -1,0 +1,5 @@
+LightCode is a compiler optimization framework designed to evaluate the speed and efficiency of compiling large language models (LLMs) for both photonic and classical computing architectures.
+
+LightCode begins by leveraging TVM Relay to extract the computational graph from Hugging Face models. This graph is then transformed into a custom intermediate representation (IR) called a stacked graph, which serves as the foundation for optimization and scheduling. Depending on the desired objective—minimizing execution time or energy consumption—LightCode applies arithmetic hardware simulation to determine which operations should be accelerated to minimize the desired quantity. Additionally, LightCode has a sequence-length search function. Given a static computational graph and hardware simulation, it identifies the sequence length at which one computing architecture becomes more efficient than another. This provides the nessessarry information to do dynamic dispatch at runtime based on the user’s prompt length.
+
+[Docs](https://ryantomich.github.io/LightCode/)
