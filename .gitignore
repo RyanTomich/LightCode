@@ -163,7 +163,7 @@ cython_debug/
 
 # custom file extentions
 *.onnx
-*.json
+
 *.pt
 *.so
 *.params
@@ -176,4 +176,3 @@ cython_debug/
 *.snapshot
 *.o
 *.weight
-
