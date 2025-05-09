@@ -177,4 +177,3 @@ cython_debug/
 *.o
 *.weight
 
-lightcode/models
