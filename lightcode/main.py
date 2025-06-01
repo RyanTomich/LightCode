@@ -3,8 +3,6 @@ Entry to program
 run using conda (schedule)
 """
 
-import psutil
-
 from lightcode import hardware
 from lightcode import graph_transformations
 from lightcode import stack_graph
@@ -26,6 +24,7 @@ def graph_search(
         weight_variable=optimization,
         moc_sequence_length=moc_sequence_length,
     )
+
     stacked_subgraphs = list(
         graph_transformations.graph_partition(graph, weight_variable=optimization)
     )
@@ -36,15 +35,28 @@ def graph_search(
     scheduled_flat_graph, end_time, break_points = graph_transformations.schdeule_nodes(
         graph, expanded_flat_subgraphs, available_hardware
     )
+    mac_energy = 0
+    electronic_energy = 0
+    for node in scheduled_flat_graph:
+        # print(f'{node.algorithm} -- {node.energy_cost}')
+        if 'phu' in node.algorithm:
+            mac_energy += node.energy_cost
+        else:
+            electronic_energy += node.energy_cost
+
     schedule_df = scheduled_flat_graph.create_schedule_data()
     validation.graph_validate(scheduled_flat_graph)
     # cg.code_gen(scheduled_flat_graph)
+
+    phu = [i for i in available_hardware.keys() if isinstance(i, hardware.PHU)][0]
 
     ret = {
         "moc_sequence_length": moc_sequence_length,
         "Makespan": end_time,
         "num_nodes": len(scheduled_flat_graph.node_list),
+        "num_mac" : phu.num_mac,
     }
+
     if profiles:
         dram, delta_dram, sram, delta_sram = data_collection.get_memory_profile(
             scheduled_flat_graph
@@ -58,6 +70,11 @@ def graph_search(
         selected = data_collection.get_photonic(flat_subgraphs)
         ret["num_photonic"] = selected[0]
         ret["posiable_photonic"] = selected[1]
+
+    # print(f'PHU{moc_sequence_length}: {mac_energy}')
+    # print(f'GPU{moc_sequence_length}: {electronic_energy}')
+    print(f'{moc_sequence_length}: {[total_energy/(10**12), mac_energy, electronic_energy]}')
+
 
     return ret
 
@@ -91,8 +108,8 @@ if __name__ == "__main__":  # import guard
     local_hardware = []
     hardware.Hardware._hardware_reset()
     # local_hardware.append(hardware.CPU(CPU_MAX_CLOCK, 1))
-    local_hardware.append(hardware.CPU(CPU_AVERAGE_CLOCK, 1))
-    # local_hardware.append(hardware.PHU(PHU_MIN_CLOCK, 1, 20))
+    # local_hardware.append(hardware.CPU(CPU_AVERAGE_CLOCK, 1))
+    local_hardware.append(hardware.PHU(PHU_MIN_CLOCK, 1, 20))
 
     GPC = 8  # Graphical Processing Clusters
     TPC_per_GPC = 9  # Texture Processing Clusters/Graphical Processing Cluster
@@ -113,10 +130,10 @@ if __name__ == "__main__":  # import guard
     available_hardware = hardware.initilize_hardware(local_hardware)
 
     ans = graph_search(
-        models.gpt2_prefill,
+        models.llama_prefill,
         optimization,
         available_hardware,
-        moc_sequence_length=1400,
+        moc_sequence_length=4000,
         profiles=True,
         colect_data=True,
     )

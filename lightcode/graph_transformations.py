@@ -566,6 +566,8 @@ def _schedule_in_out(graph, available_hardware):
         min_child_obj = None
         for idx, transfer_cost in childrn:
             child_obj = graph.node_list[idx]
+            # if child_obj.start_time is None:
+            #     child_obj.start_time = graph.node_list[2].start_time + graph.adj_matrix[13][2]
             if (child_obj.start_time - transfer_cost) < min_node_end_time:
                 min_node_end_time = child_obj.start_time - transfer_cost
                 min_child_obj = child_obj
@@ -604,7 +606,6 @@ def schdeule_nodes(original_graph, subgraphs, available_hardware):
     full_node_list = []
     for subgraph in subgraphs:
         _scheduling_dijkstra(subgraph, available_hardware)
-
         for node in subgraph.node_list:
             if node.algorithm != "start" and node.stack_id not in nodes_seen:
                 if 0 in node.parents:
@@ -631,7 +632,7 @@ def schdeule_nodes(original_graph, subgraphs, available_hardware):
 
     end_time = round(
         max(max(inner_dict.values()) for inner_dict in available_hardware.values()),
-        5,
+        15,
     )
 
     return (

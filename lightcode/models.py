@@ -45,6 +45,13 @@ gpt2_decoder = Model(
     sequence_length=6,
 )
 
+lenet = Model(
+    model="lenet",
+    stage="na",
+    relay_path=str(resources.files("lightcode") / "models" / "lenet300100_graph.json"),
+    sequence_length=5,
+)
+
 
 # relay_path = "lightcode/models/gpt2_prefill_graph.json"
 # relay_path = "lightcode/models/gpt2_decoder_graph.json"

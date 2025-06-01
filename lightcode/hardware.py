@@ -216,7 +216,7 @@ class HardwareAlgorithm:
         self.cost = cost
         self.alg_hardware = next(
             iter(cost.keys())
-        )  # will need to change for multi hardware algorithms
+        )  # TODO will need to change for multi hardware algorithms
 
     def time_cost(self, i, o):
         return sum(
@@ -256,6 +256,7 @@ class PHU(Hardware):
         self.num_numtiplex = num_multiplex
         self.num_cores = num_cores
         self.mac_energy = PHU_MAC
+        self.num_mac = 0
         self.algs = {
             "task_para_matmul_phu": HardwareAlgorithm(
                 "matmul",
@@ -324,15 +325,14 @@ class PHU(Hardware):
             math.ceil(
                 math.ceil(num_dot_product_per_matmul / self.num_numtiplex)
                 / self.num_cores
-            )
-            * length_dot_products
-            * num_matmul
+            ) * length_dot_products * num_matmul
         )
         return phu_cycles
 
     def _phu_matmul_task_para_energy(self, i, o):
         num_dot_products = ten_elm(o[0])
         length_dot_products = i[0][-1]
+        self.num_mac += num_dot_products * length_dot_products
         return num_dot_products * length_dot_products * self.mac_energy
 
 
@@ -629,34 +629,61 @@ class Start(Hardware):
 
 # endregion
 
-# region constants
-
 NODE_COUNT = 0
 
-# region constants and helpers
+# region my constants
+# MEMORY_TRANSFER_WIDTH = 32  # bits per cycle
+# DAC_ADC_DELAY = 10 * 10**-9  # 10 nano-seconds
+
+# BITS_PER_NUM = 32  # TODO fix to be opp dependant based on the model
+# MEMORY_CLOCK = 6 * 10**9
+
+# # Power
+# PICO_JOULE = 10**-12
+# JOULE_PER_CYCLE = 1 * PICO_JOULE
+
+# DRAM_READ = 160 * PICO_JOULE
+# DRAM_WRITE = 160 * PICO_JOULE
+# HBM_READ = 40 * PICO_JOULE
+# HBM_WRITE = 40 * PICO_JOULE
+# SRAM_READ = 12 * PICO_JOULE
+# SRAM_WRITE = 12 * PICO_JOULE
+# LOCAL_READ = 1 * PICO_JOULE
+# LOCAL_WRITE = 1 * PICO_JOULE
+# PHU_MAC = 0.04 * PICO_JOULE
+# CPU_MAC = 0.1 * PICO_JOULE
+# GPU_MAC = 0.1 * PICO_JOULE
+
+# DAC_POWER = 3.18 * PICO_JOULE
+# ADC_POWER = 1.6 * PICO_JOULE
+
+# endregion
+
+# region new constants
+
 MEMORY_TRANSFER_WIDTH = 32  # bits per cycle
 DAC_ADC_DELAY = 10 * 10**-9  # 10 nano-seconds
 
-BITS_PER_NUM = 32  # TODO fix to be opp dependant based on the model
+BITS_PER_NUM = 8
 MEMORY_CLOCK = 6 * 10**9
 
 # Power
 PICO_JOULE = 10**-12
 JOULE_PER_CYCLE = 1 * PICO_JOULE
 
-DRAM_READ = 160 * PICO_JOULE
-DRAM_WRITE = 160 * PICO_JOULE
-HBM_READ = 40 * PICO_JOULE
-HBM_WRITE = 40 * PICO_JOULE
-SRAM_READ = 12 * PICO_JOULE
-SRAM_WRITE = 12 * PICO_JOULE
+DRAM_READ = PICO_JOULE * BITS_PER_NUM
+DRAM_WRITE = PICO_JOULE * BITS_PER_NUM
+HBM_READ = 0
+HBM_WRITE = 0
+SRAM_READ = 0.3 * PICO_JOULE * BITS_PER_NUM
+SRAM_WRITE = 0.3 * PICO_JOULE * BITS_PER_NUM
 LOCAL_READ = 1 * PICO_JOULE
 LOCAL_WRITE = 1 * PICO_JOULE
 PHU_MAC = 0.04 * PICO_JOULE
 CPU_MAC = 0.1 * PICO_JOULE
-GPU_MAC = 0.1 * PICO_JOULE
+GPU_MAC = 0.07 * PICO_JOULE
 
-DAC_POWER = 3.18 * PICO_JOULE
-ADC_POWER = 1.6 * PICO_JOULE
+DAC_POWER = 10 * PICO_JOULE
+ADC_POWER = 3.17 * PICO_JOULE
 
 # endregion

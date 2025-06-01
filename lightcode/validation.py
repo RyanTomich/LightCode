@@ -61,7 +61,7 @@ def node_list_complete(node_list):
 
         assert bool(node.parents) | (
             node.stack_id in parrents
-        ), f"node {node.stac_id} is an isolated node. each node either needs parents or needs to be a parent"
+        ), f"node {node.stack_id} is an isolated node. each node either needs parents or needs to be a parent"
 
 
 def merge_i_o(full_node_list, original_graph):
