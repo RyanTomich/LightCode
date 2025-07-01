@@ -1,0 +1,1882 @@
+{
+  "gpt2_prefill_100_time_PHU_MIN_CLOCK": {
+    "8730000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "9215000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "9700000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "10185000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "10670000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    }
+  },
+  "gpt2_prefill_100_energy_PHU_MIN_CLOCK": {
+    "8730000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.109877288219358,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "9215000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.106097966099625,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "9700000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "10185000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.099619128180085,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "10670000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.096821448169374,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    }
+  },
+  "llama_prefill_100_time_PHU_MIN_CLOCK": {
+    "8730000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "9215000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "9700000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "10185000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "10670000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    }
+  },
+  "llama_prefill_100_energy_PHU_MIN_CLOCK": {
+    "8730000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.941186661952688,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "9215000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.741232125991044,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "9700000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "10185000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.398452921484713,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "10670000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.250434628630009,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    }
+  },
+  "gpt2_prefill_100_time_GPU_MAC": {
+    "6.300000000000001e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4265885946.0,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "6.650000000000001e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4309767277.2,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "7e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "7.35e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4397529939.6,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "7.700000000000001e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4441411270.8,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    }
+  },
+  "gpt2_prefill_100_energy_GPU_MAC": {
+    "6.300000000000001e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "6.650000000000001e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "7e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "7.35e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "7.700000000000001e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    }
+  },
+  "llama_prefill_100_time_GPU_MAC": {
+    "6.300000000000001e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 152346639129.0,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "6.650000000000001e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 154668291250.6,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "7e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "7.35e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 159311595493.8,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "7.700000000000001e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 161633247615.4,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    }
+  },
+  "llama_prefill_100_energy_GPU_MAC": {
+    "6.300000000000001e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "6.650000000000001e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "7e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "7.35e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "7.700000000000001e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    }
+  },
+  "gpt2_prefill_100_time_LOCAL_RW_COST": {
+    "9e-13": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4275936850.8,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "9.5e-13": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4314792729.6,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "1e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "1.05e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4392504487.2,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "1.1000000000000002e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4431360366.0,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    }
+  },
+  "gpt2_prefill_100_energy_LOCAL_RW_COST": {
+    "9e-13": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3270035720.4,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "9.5e-13": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3293896946.0,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "1e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "1.05e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3341619397.2,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "1.1000000000000002e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3365480622.8,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    }
+  },
+  "llama_prefill_100_time_LOCAL_RW_COST": {
+    "9e-13": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 155177506409.4,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "9.5e-13": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156083724890.8,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "1e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "1.05e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 157896161853.6,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "1.1000000000000002e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 158802380335.0,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    }
+  },
+  "llama_prefill_100_energy_LOCAL_RW_COST": {
+    "9e-13": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106157133622.2,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "9.5e-13": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106370006926.0,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "1e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "1.05e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106795753533.6,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "1.1000000000000002e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 107008626837.4,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    }
+  },
+  "gpt2_prefill_100_time_DAC_POWER": {
+    "9e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "9.5e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "1e-11": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "1.05e-11": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "1.1e-11": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    }
+  },
+  "gpt2_prefill_100_energy_DAC_POWER": {
+    "9e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "9.5e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "1e-11": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "1.05e-11": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "1.1e-11": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    }
+  },
+  "llama_prefill_100_time_DAC_POWER": {
+    "9e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "9.5e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "1e-11": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "1.05e-11": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "1.1e-11": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    }
+  },
+  "llama_prefill_100_energy_DAC_POWER": {
+    "9e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "9.5e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "1e-11": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "1.05e-11": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "1.1e-11": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    }
+  },
+  "gpt2_prefill_100_time_GPU_FP32_CLOCK": {
+    "1782000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.042328360085298,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "1881000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.040100563729931,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "1980000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "2079000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.036282257712362,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "2178000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.034633074604224,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    }
+  },
+  "gpt2_prefill_100_energy_GPU_FP32_CLOCK": {
+    "1782000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.106926108907916,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "1881000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.104700039057364,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "1980000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "2079000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.10088391931356,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "2178000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.099236049424191,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    }
+  },
+  "llama_prefill_100_time_GPU_FP32_CLOCK": {
+    "1782000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.304303215998878,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "1881000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.288311509253058,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "1980000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "2079000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.260929256803755,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "2178000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.249130884706146,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    }
+  },
+  "llama_prefill_100_energy_GPU_FP32_CLOCK": {
+    "1782000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.577053645589131,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "1881000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.568748065608053,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "1980000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "2079000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.554509928497624,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "2178000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.548361642018107,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    }
+  },
+  "gpt2_prefill_100_time_MEMORY_CLOCK": {
+    "5400000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096384612794,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "5700000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096371201489,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "6000000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "6300000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096348210678,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "6600000000.000001": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096338282828,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    }
+  },
+  "gpt2_prefill_100_energy_MEMORY_CLOCK": {
+    "5400000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696606580756,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "5700000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696590586604,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "6000000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "6300000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696563168057,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "6600000000.000001": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696551328231,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    }
+  },
+  "llama_prefill_100_time_MEMORY_CLOCK": {
+    "5400000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964243434342,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "5700000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.27396421390218,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "6000000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "6300000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964163275612,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "6600000000.000001": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964141414141,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    }
+  },
+  "llama_prefill_100_energy_MEMORY_CLOCK": {
+    "5400000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.561273122625078,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "5700000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.561273081046368,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "6000000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "6300000000.0": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.561273009768209,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "6600000000.000001": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.561272978988826,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    }
+  },
+  "gpt2_prefill_100_time_ADC_POWER": {
+    "2.853e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "3.0115e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "3.17e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "3.3285000000000002e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "3.4870000000000004e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    }
+  },
+  "gpt2_prefill_100_energy_ADC_POWER": {
+    "2.853e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "3.0115e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "3.17e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "3.3285000000000002e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "3.4870000000000004e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    }
+  },
+  "llama_prefill_100_time_ADC_POWER": {
+    "2.853e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "3.0115e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "3.17e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "3.3285000000000002e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "3.4870000000000004e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    }
+  },
+  "llama_prefill_100_energy_ADC_POWER": {
+    "2.853e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "3.0115e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "3.17e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "3.3285000000000002e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "3.4870000000000004e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    }
+  },
+  "gpt2_prefill_100_time_DRAM_RW_COST": {
+    "7.2e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4223690378.0,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "7.6e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4288669493.2,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "8e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "8.4e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4418627723.6,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "8.800000000000001e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4483606838.8,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    }
+  },
+  "gpt2_prefill_100_energy_DRAM_RW_COST": {
+    "7.2e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3187799941.2,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "7.6e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3252779056.4,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "8e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "8.4e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3382737286.8,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "8.800000000000001e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3447716402.0,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    }
+  },
+  "llama_prefill_100_time_DRAM_RW_COST": {
+    "7.2e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 151599134081.0,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "7.6e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 154294538726.6,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "8e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "8.4e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 159685348017.8,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "8.800000000000001e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 162380752663.4,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    }
+  },
+  "llama_prefill_100_energy_DRAM_RW_COST": {
+    "7.2e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 101192070938.6,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "7.6e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 103887475584.2,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "8e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "8.4e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 109278284875.4,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "8.800000000000001e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 111973689521.0,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    }
+  },
+  "gpt2_prefill_100_time_SRAM_RW_COST": {
+    "2.16e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4221407030.2,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "2.2799999999999996e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4287527819.3,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "2.4e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "2.52e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4419769397.5,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "2.64e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4485890186.6,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    }
+  },
+  "gpt2_prefill_100_energy_SRAM_RW_COST": {
+    "2.16e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3221503761.0,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "2.2799999999999996e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3269630966.3,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "2.4e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "2.52e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3365885376.9,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "2.64e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3414012582.2,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    }
+  },
+  "llama_prefill_100_time_SRAM_RW_COST": {
+    "2.16e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 153197389109.5,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "2.2799999999999996e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 155093666240.9,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "2.4e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "2.52e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 158886220503.6,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "2.64e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 160782497634.9,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    }
+  },
+  "llama_prefill_100_energy_SRAM_RW_COST": {
+    "2.16e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 104454354393.3,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "2.2799999999999996e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 105518617311.6,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "2.4e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "2.52e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 107647143148.0,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "2.64e-12": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 108711406066.3,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    }
+  },
+  "gpt2_prefill_100_time_PHU_MAC": {
+    "3.6e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "3.7999999999999996e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "4e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "4.2000000000000004e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    },
+    "4.4e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.038096359131313,
+      "num_nodes": 1108,
+      "num_mac": 12537523200,
+      "total_energy": 4353648608.4,
+      "num_photonic": 0,
+      "posiable_photonic": 73
+    }
+  },
+  "gpt2_prefill_100_energy_PHU_MAC": {
+    "3.6e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3267608078.8,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "3.7999999999999996e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3292683125.2,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "4e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3317758171.6,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "4.2000000000000004e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3342833218.0,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    },
+    "4.4e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.102696576191867,
+      "num_nodes": 1518,
+      "num_mac": 52177612800,
+      "total_energy": 3367908264.4,
+      "num_photonic": 73,
+      "posiable_photonic": 73
+    }
+  },
+  "llama_prefill_100_time_PHU_MAC": {
+    "3.6e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "3.7999999999999996e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "4e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "4.2000000000000004e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    },
+    "4.4e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 0.273964187323235,
+      "num_nodes": 2823,
+      "num_mac": 663329177600,
+      "total_energy": 156989943372.2,
+      "num_photonic": 0,
+      "posiable_photonic": 289
+    }
+  },
+  "llama_prefill_100_energy_PHU_MAC": {
+    "3.6e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 103929563519.4,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "3.7999999999999996e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 105256221874.6,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "4e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 106582880229.8,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "4.2000000000000004e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 107909538585.0,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    },
+    "4.4e-14": {
+      "moc_sequence_length": 100,
+      "Makespan": 3.56127304362508,
+      "num_nodes": 5385,
+      "num_mac": 2734581350400,
+      "total_energy": 109236196940.2,
+      "num_photonic": 289,
+      "posiable_photonic": 289
+    }
+  }
+}

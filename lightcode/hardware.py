@@ -671,19 +671,43 @@ MEMORY_CLOCK = 6 * 10**9
 PICO_JOULE = 10**-12
 JOULE_PER_CYCLE = 1 * PICO_JOULE
 
-DRAM_READ = PICO_JOULE * BITS_PER_NUM
-DRAM_WRITE = PICO_JOULE * BITS_PER_NUM
+DRAM_RW_COST = 1 * PICO_JOULE * BITS_PER_NUM
+DRAM_READ = 1 * PICO_JOULE * BITS_PER_NUM
+DRAM_WRITE = 1 * PICO_JOULE * BITS_PER_NUM
+
 HBM_READ = 0
 HBM_WRITE = 0
+
+SRAM_RW_COST = 0.3 * PICO_JOULE * BITS_PER_NUM
 SRAM_READ = 0.3 * PICO_JOULE * BITS_PER_NUM
 SRAM_WRITE = 0.3 * PICO_JOULE * BITS_PER_NUM
+
+LOCAL_RW_COST = 1 * PICO_JOULE
 LOCAL_READ = 1 * PICO_JOULE
 LOCAL_WRITE = 1 * PICO_JOULE
+
 PHU_MAC = 0.04 * PICO_JOULE
 CPU_MAC = 0.1 * PICO_JOULE
 GPU_MAC = 0.07 * PICO_JOULE
 
 DAC_POWER = 10 * PICO_JOULE
 ADC_POWER = 3.17 * PICO_JOULE
+
+def reset_param(param_name, val):
+    global_vars = globals()
+    if param_name in global_vars:
+        global_vars[param_name] = val
+        # Sync related parameters, if needed
+        if param_name == "LOCAL_RW_COST":
+            global_vars["LOCAL_READ"] = val
+            global_vars["LOCAL_WRITE"] = val
+        elif param_name == "SRAM_RW_COST":
+            global_vars["SRAM_READ"] = val
+            global_vars["SRAM_WRITE"] = val
+        elif param_name == "DRAM_RW_COST":
+            global_vars["DRAM_READ"] = val
+            global_vars["DRAM_WRITE"] = val
+    else:
+        raise ValueError(f"Unknown parameter: {param_name}")
 
 # endregion

@@ -20,6 +20,12 @@ TPC_per_GPC = 9  # Texture Processing Clusters/Graphical Processing Cluster
 SM_per_TPC = 2  # Streaming multiprocessors / Texture Processing Cluster
 fp32_CUDA_cores_per_SM = 128  # fp32_CUDA_cores / Streaming multiprocessor
 TC_per_SM = 4  # Tensor Cores / Streaming multiprocessor
+ret = hardware.GPU(
+        GPU_FP32_CLOCK, GPC, TPC_per_GPC, SM_per_TPC, fp32_CUDA_cores_per_SM, TC_per_SM
+    )
+
+print(ret.num_cores)
+
 local_hardware.append(
     hardware.GPU(
         GPU_FP32_CLOCK, GPC, TPC_per_GPC, SM_per_TPC, fp32_CUDA_cores_per_SM, TC_per_SM

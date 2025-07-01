@@ -1,12 +1,35 @@
 # %%
-
 import json
 import matplotlib.pyplot as plt
 
-# energy_filename = "gpt2_prefill_energy_CPU-False_PHU-True_GPU-True.json"
-# time_filename = "gpt2_prefill_time_CPU-False_PHU-True_GPU-True.json"
-energy_filename = "llama_prefill_energy_CPU-False_PHU-True_GPU-True.json"
-time_filename = "llama_prefill_time_CPU-False_PHU-True_GPU-True.json"
+# AIP-compliant plot styling
+plt.rcParams.update({
+    "font.family": "serif",       # Serif font for publication quality
+    "font.size": 6,               # Base font size
+    "axes.labelsize": 6,
+    "axes.titlesize": 8,
+    "legend.fontsize": 6,
+    "xtick.labelsize": 6,
+    "ytick.labelsize": 6,
+    "lines.linewidth": 0.5,      # At least 0.5 pt line width
+    "pdf.fonttype": 42,           # Embed fonts in PDF
+    "ps.fonttype": 42
+})
+
+
+# Constants for AIP figure sizing
+ONE_COL_WIDTH = 3.37  # inches
+TWO_COL_WIDTH = 6.69  # inches
+MAX_HEIGHT = 8.25     # inches
+MARKER_SIZE = 9
+LINE_WIDTH = 0.6
+
+# %%
+
+energy_filename = "gpt2_prefill_energy_CPU-False_PHU-True_GPU-True.json"
+time_filename = "gpt2_prefill_time_CPU-False_PHU-True_GPU-True.json"
+# energy_filename = "llama_prefill_energy_CPU-False_PHU-True_GPU-True.json"
+# time_filename = "llama_prefill_time_CPU-False_PHU-True_GPU-True.json"
 
 # Load data from both files
 def load_results(filename):
@@ -20,8 +43,6 @@ def load_metadata(filename):
         data = json.load(f)
 
     return data["_metadata"]
-
-
 
 # %%
 #### Makespan plot ####
@@ -44,30 +65,7 @@ energy_opt_energy = [energy_opt_data[k]["total_energy"]/ 10**12 for k in energy_
 time_opt_makespan = [time_opt_data[k]["Makespan"] for k in time_opt_data.keys()]
 time_opt_energy = [time_opt_data[k]["total_energy"]/ 10**12 for k in time_opt_data.keys()]
 
-
-# AIP-compliant plot styling
-plt.rcParams.update({
-    "font.family": "serif",       # Serif font for publication quality
-    "font.size": 6,               # Base font size
-    "axes.labelsize": 6,
-    "axes.titlesize": 8,
-    "legend.fontsize": 6,
-    "xtick.labelsize": 6,
-    "ytick.labelsize": 6,
-    "lines.linewidth": 0.5,      # At least 0.5 pt line width
-    "pdf.fonttype": 42,           # Embed fonts in PDF
-    "ps.fonttype": 42
-})
-
-
-# Constants for AIP figure sizing
-ONE_COL_WIDTH = 3.37  # inches
-TWO_COL_WIDTH = 6.69  # inches
-MAX_HEIGHT = 8.25     # inches
-MARKER_SIZE = 1.5
-LINE_WIDTH = 0.6
-
-# %%
+# %% Figure 3 and 4
 # Makespan plot
 def plot_makespan_vs_sequence_length():
     title = f'{energy_metadata["graph_search"]["model"]} Forward Pass'
@@ -177,7 +175,7 @@ makespan_and_energy_stack()
 
 
 
-# %%
+# %% Figure 5
 def multiplex_makespan_and_energy_stack(filenames):
     multiplex_energy = {}
     multiplex_makespan = {}
@@ -201,7 +199,7 @@ def multiplex_makespan_and_energy_stack(filenames):
     # Makespan subplot
     for label in sorted(filenames.keys(), key=int):
         ax1.plot(sequence_lengths, multiplex_makespan[label], marker='o', markersize=MARKER_SIZE,
-                 linewidth=LINE_WIDTH, label=f"PHU multiplex {label}")
+                 linewidth=LINE_WIDTH, label=f"PTU multiplex {label}")
     ax1.set_ylabel("Makespan (s)")
     ax1.grid(True, linestyle='--', alpha=0.6)
     ax1.set_yscale('log')
@@ -211,7 +209,7 @@ def multiplex_makespan_and_energy_stack(filenames):
     # Energy subplot
     for label in sorted(filenames.keys(), key=int):
         ax2.plot(sequence_lengths, multiplex_energy[label], marker='s', markersize=MARKER_SIZE,
-                 linewidth=LINE_WIDTH, label=f"PHU multiplex  {label}")
+                 linewidth=LINE_WIDTH, label=f"PTU multiplex  {label}")
     ax2.set_xlabel("MOC Sequence Length")
     ax2.set_ylabel("Total Energy (J)")
     ax2.set_yscale('log')
@@ -236,7 +234,7 @@ multiplex_filenames = {
 # Generate plots
 multiplex_makespan_and_energy_stack(multiplex_filenames)
 
-# %% Percentage Compute
+# %% Percentage Compute Figure 6
 
 import numpy as np
 
@@ -305,14 +303,14 @@ fig, ax = plt.subplots(figsize=(ONE_COL_WIDTH, 2.5))
 title = "Energy Source Breakdown by Component"
 
 # Stacked bars
-ax.bar(x, phu_pct, width=bar_width, label="PHU (%)")
+ax.bar(x, phu_pct, width=bar_width, label="PTU (%)")
 ax.bar(x, gpu_pct, width=bar_width, bottom=phu_pct, label="GPU (%)")
 bottom_stack = np.array(phu_pct) + np.array(gpu_pct)
 ax.bar(x, other_pct, width=bar_width, bottom=bottom_stack, label="Data Transfer (%)")
 
 # Axes labels and styling
 ax.set_xticks(x)
-ax.set_xticklabels(sequence_lengths, rotation=90, fontsize=5)  # <-- updated
+ax.set_xticklabels(sequence_lengths, rotation=90, fontsize=5)
 ax.set_xlabel("Sequence Length")
 ax.set_ylabel("Share of Total Energy (%)")
 ax.set_title(title)
@@ -323,5 +321,126 @@ ax.legend(loc='upper right', ncol=1)
 plt.tight_layout()
 plt.savefig("energy_source_breakdown.png", dpi=300)
 plt.close(fig)
+
+
+
+
+# %% Figure 7
+import json
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import ScalarFormatter
+import numpy as np
+
+# Load data
+with open("sensitivity_results_100.json", "r") as f:
+    all_data = json.load(f)
+
+# Configurations
+models = [("gpt2_prefill", 100), ("llama_prefill", 100)]
+# models = [("gpt2_prefill", 1024), ("llama_prefill", 4096)]
+optimizations = ["time", "energy"]
+params = [
+    'PHU_MIN_CLOCK', 'GPU_FP32_CLOCK', 'MEMORY_CLOCK',
+    'DRAM_RW_COST', 'SRAM_RW_COST', 'LOCAL_RW_COST',
+    'PHU_MAC', 'GPU_MAC', 'DAC_POWER', 'ADC_POWER'
+]
+
+# Colors and markers
+colors = plt.cm.tab10.colors
+markers = ['o', 's', '^', 'D', 'v', '<', '>', 'P', '*', 'X']
+
+# Create figure with 4 rows (2 per model) and 2 columns (top: Makespan, bottom: Energy)
+fig, axes = plt.subplots(
+    4, 2, figsize=(10, 12), sharex='col',
+    gridspec_kw={"height_ratios": [1, 1, 1, 1]}
+)
+
+axes = axes.reshape(4, 2)
+
+for plot_idx, (model_name, seq_len) in enumerate(models):
+    for opt_idx, optimization in enumerate(optimizations):
+        row = plot_idx * 2 + opt_idx
+        ax_top, ax_bottom = axes[row]
+
+        all_percent_labels = None
+        handles = []
+
+        for idx, param in enumerate(params):
+            key = f"{model_name}_{seq_len}_{optimization}_{param}"
+            if key not in all_data:
+                print(f"Missing key: {key}")
+                continue
+
+            data = all_data[key]
+            keys = sorted(data.keys(), key=lambda x: float(x))
+            x_vals = [float(k) for k in keys]
+            makespans = [data[k]["Makespan"] for k in keys]
+            energies_nj = [data[k]["total_energy"] / 1e9 for k in keys]
+            num_photonic = [data[k]["num_photonic"] for k in keys]
+
+            if any([i<0 for i in makespans]):
+                assert False
+            if any([i<0 for i in energies_nj]):
+                assert False
+
+            tolerance = 0
+            base_makespan = makespans[0]
+            base_energy = energies_nj[0]
+
+            if all(abs(m - base_makespan) / base_makespan <= tolerance for m in makespans) and \
+            all(abs(e - base_energy) / base_energy <= tolerance for e in energies_nj):
+                continue
+
+
+            base = x_vals[len(x_vals) // 2]
+            percent_labels = [f"{(v - base) / base * 100:.0f}%" for v in x_vals]
+            if all_percent_labels is None:
+                all_percent_labels = percent_labels
+
+            color = colors[idx % len(colors)]
+            marker = markers[idx % len(markers)]
+
+            if param == "PHU_MIN_CLOCK":
+                param = "PTU_MIN_CLOCK"
+
+            h, = ax_top.plot(percent_labels, makespans, marker=marker, markersize=MARKER_SIZE, label=param, color=color, alpha=0.5)
+            ax_bottom.plot(percent_labels, energies_nj, marker=marker, markersize=MARKER_SIZE, color=color, alpha=0.5)
+            handles.append(h)
+
+
+        ax_top.set_ylabel("Makespan (ms)", fontsize=14)
+        ax_bottom.set_ylabel("Energy (nJ)", fontsize=14)
+
+        ax_top.tick_params(axis='both', labelsize=12)
+        ax_bottom.tick_params(axis='both', labelsize=12)
+
+        # Only label x-axis for the bottom-most row
+        if row == 3:
+            ax_top.set_xlabel("Parameter Change (% from baseline)", fontsize=14)
+
+        ax_top.grid(True)
+        ax_bottom.grid(True)
+
+        # Titles for each subfigure
+        ax_top.set_title(f"{model_name.replace('_', ' ')}, {optimization.capitalize()} Optimization", fontsize=18)
+
+        # ax_top.set_yscale('log')
+        # ax_bottom.set_yscale('log')
+
+
+
+
+# Global legend
+fig.legend(
+    handles, [h.get_label() for h in handles],
+    loc="upper center", bbox_to_anchor=(0.5, 0.96),
+    ncol=3, frameon=True, fontsize=12
+)
+
+fig.suptitle(f"Sensitivity Analysis (max Sequence Length)", fontsize=20)
+plt.tight_layout(rect=[0, 0, 1, 0.92])
+plt.savefig("sensitivity_analysis_combined.png", bbox_inches="tight")
+plt.show()
 
 # %%

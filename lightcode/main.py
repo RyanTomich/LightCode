@@ -73,7 +73,7 @@ def graph_search(
 
     # print(f'PHU{moc_sequence_length}: {mac_energy}')
     # print(f'GPU{moc_sequence_length}: {electronic_energy}')
-    print(f'{moc_sequence_length}: {[total_energy/(10**12), mac_energy, electronic_energy]}')
+    # print(f'{moc_sequence_length}: {[total_energy/(10**12), mac_energy, electronic_energy]}')
 
 
     return ret
